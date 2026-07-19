@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "/gEvLB6dWK4=",
+  "dgSpecHash": "2p8rfD3xxQ8=",
   "success": true,
   "projectFilePath": "C:\\Users\\ghane\\Downloads\\IT-HelpDesk-System\\IT-HelpDesk-Ticketing-System\\backend\\ITHelpDesk.API\\ITHelpDesk.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ghane\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ghane\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
+    "C:\\Users\\ghane\\.nuget\\packages\\bcrypt.net-next\\4.2.0\\bcrypt.net-next.4.2.0.nupkg.sha512",
     "C:\\Users\\ghane\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\ghane\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.11\\microsoft.aspnetcore.authentication.jwtbearer.8.0.11.nupkg.sha512",
     "C:\\Users\\ghane\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
