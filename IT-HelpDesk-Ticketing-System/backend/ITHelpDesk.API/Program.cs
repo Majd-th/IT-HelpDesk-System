@@ -9,11 +9,21 @@ using ITHelpDesk.API.Interfaces;
 using ITHelpDesk.API.Repositories;
 using ITHelpDesk.API.Services;
 using ITHelpDesk.API.Helpers;
-using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 // Add services
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -66,6 +76,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtHelper>();
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -76,7 +88,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowReact");
+
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

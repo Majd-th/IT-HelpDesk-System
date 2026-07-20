@@ -42,4 +42,43 @@ public class AuthController : ControllerBase
     {
         return Ok("You are authenticated!");
     }
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin")]
+    public IActionResult AdminOnly()
+    {
+        return Ok("Welcome Admin!");
+    }
+
+    [Authorize(Roles = "Manager")]
+    [HttpGet("manager")]
+    public IActionResult ManagerOnly()
+    {
+        return Ok("Welcome Manager!");
+    }
+
+    [Authorize(Roles = "IT Support Agent")]
+    [HttpGet("agent")]
+    public IActionResult AgentOnly()
+    {
+        return Ok("Welcome IT Support Agent!");
+    }
+
+    [Authorize(Roles = "Employee")]
+    [HttpGet("employee")]
+    public IActionResult EmployeeOnly()
+    {
+        return Ok("Welcome Employee!");
+    }
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        return Ok(new
+        {
+            UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+            Name = User.Identity?.Name,
+            Email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value,
+            Role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+        });
+    }
 }
