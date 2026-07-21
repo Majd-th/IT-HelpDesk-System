@@ -2,7 +2,7 @@ using ITHelpDesk.API.DTOs;
 using ITHelpDesk.API.Helpers;
 using ITHelpDesk.API.Interfaces;
 using ITHelpDesk.API.Models;
-
+using System.Security.Claims;
 namespace ITHelpDesk.API.Services;
 
 public class AuthService : IAuthService
@@ -73,5 +73,24 @@ public class AuthService : IAuthService
 
         // Generate JWT
         return _jwtHelper.GenerateToken(user);
+    }
+    public async Task<UserResponseDto?> GetCurrentUserAsync(ClaimsPrincipal userClaims)
+    {
+        var userId = int.Parse(
+            userClaims.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
+        if (user == null)
+            return null;
+
+        return new UserResponseDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role.Name
+        };
     }
 }

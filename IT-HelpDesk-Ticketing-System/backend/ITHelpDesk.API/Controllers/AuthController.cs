@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 namespace ITHelpDesk.API.Controllers;
 
+using System.Security.Claims;
+using ITHelpDesk.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
+
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -69,7 +73,7 @@ public class AuthController : ControllerBase
     {
         return Ok("Welcome Employee!");
     }
-    [Authorize]
+    /*[Authorize]
     [HttpGet("me")]
     public IActionResult Me()
     {
@@ -79,6 +83,17 @@ public class AuthController : ControllerBase
             Name = User.Identity?.Name,
             Email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value,
             Role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
-        });
+        });*/
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
+        var user = await _authService.GetCurrentUserAsync(User);
+
+        if (user == null)
+            return NotFound();
+
+        return Ok(user);
     }
 }
