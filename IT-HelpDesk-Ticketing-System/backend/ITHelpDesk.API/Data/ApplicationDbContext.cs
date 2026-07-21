@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<TicketAssignment> TicketAssignments { get; set; }
     public DbSet<KnowledgeBaseArticle> KnowledgeBaseArticles { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

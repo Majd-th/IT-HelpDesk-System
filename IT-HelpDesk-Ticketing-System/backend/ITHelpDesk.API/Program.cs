@@ -9,6 +9,7 @@ using ITHelpDesk.API.Interfaces;
 using ITHelpDesk.API.Repositories;
 using ITHelpDesk.API.Services;
 using ITHelpDesk.API.Helpers;
+using ITHelpDesk.API.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 // Add services
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -76,8 +77,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtHelper>();
-
-
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

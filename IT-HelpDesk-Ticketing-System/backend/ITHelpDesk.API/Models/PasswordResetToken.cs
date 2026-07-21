@@ -19,4 +19,5 @@ public class PasswordResetToken
     public bool Used { get; set; } = false;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
 }

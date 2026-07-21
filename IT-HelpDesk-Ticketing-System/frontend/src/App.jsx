@@ -8,6 +8,8 @@ import AgentDashboard from "./pages/AgentDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
     return (
@@ -16,6 +18,15 @@ function App() {
             <Routes>
 
                 <Route path="/" element={<Login />} />
+                <Route
+    path="/reset-password"
+    element={<ResetPassword />}
+
+/>
+<Route
+    path="/forgot-password"
+    element={<ForgotPassword />}
+/>
 
                 <Route
                     path="/admin"

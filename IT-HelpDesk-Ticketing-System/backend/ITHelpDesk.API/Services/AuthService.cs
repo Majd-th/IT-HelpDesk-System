@@ -5,15 +5,27 @@ using ITHelpDesk.API.Models;
 using System.Security.Claims;
 namespace ITHelpDesk.API.Services;
 
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
+using ITHelpDesk.API.Models;
+using ITHelpDesk.API.Data;
+
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly JwtHelper _jwtHelper;
-
-    public AuthService(IUserRepository userRepository, JwtHelper jwtHelper)
+    private readonly IEmailService _emailService;
+    private readonly ApplicationDbContext _context;
+    public AuthService(
+     ApplicationDbContext context,
+     IUserRepository userRepository,
+     JwtHelper jwtHelper,
+     IEmailService emailService)
     {
+        _context = context;
         _userRepository = userRepository;
         _jwtHelper = jwtHelper;
+        _emailService = emailService;
     }
 
     public async Task<bool> RegisterAsync(RegisterRequestDto request)
@@ -92,5 +104,63 @@ public class AuthService : IAuthService
             Email = user.Email,
             Role = user.Role.Name
         };
+    }
+    public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto request)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (user == null)
+            return false;
+
+        var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+
+        var resetToken = new PasswordResetToken
+        {
+            TokenHash = token,
+            UserId = user.Id,
+            ExpiresAt = DateTime.UtcNow.AddHours(1),
+            Used = false
+        };
+
+        _context.PasswordResetTokens.Add(resetToken);
+
+        await _context.SaveChangesAsync();
+
+        var resetLink =
+            $"http://localhost:5173/reset-password?token={token}";
+
+        await _emailService.SendPasswordResetEmailAsync(
+            user.Email,
+            resetLink);
+
+        return true;
+    }
+
+
+
+    public async Task<bool> ResetPasswordAsync(
+        ResetPasswordRequestDto request)
+    {
+        var resetToken = await _context.PasswordResetTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t =>
+                t.TokenHash == request.Token &&
+                !t.Used);
+
+        if (resetToken == null)
+            return false;
+
+        if (resetToken.ExpiresAt < DateTime.UtcNow)
+            return false;
+
+        resetToken.User.PasswordHash =
+            BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+        resetToken.Used = true;
+
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

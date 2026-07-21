@@ -61,4 +61,5 @@ public class User
     public ICollection<KnowledgeBaseArticle> CreatedArticles { get; set; } = new List<KnowledgeBaseArticle>();
 
     public ICollection<KnowledgeBaseArticle> ApprovedArticles { get; set; } = new List<KnowledgeBaseArticle>();
+    public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 }

@@ -9,4 +9,7 @@ public interface IAuthService
 
     Task<string?> LoginAsync(LoginRequestDto request);
     Task<UserResponseDto?> GetCurrentUserAsync(ClaimsPrincipal userClaims);
+    Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto request);
+
+    Task<bool> ResetPasswordAsync(ResetPasswordRequestDto request);
 }

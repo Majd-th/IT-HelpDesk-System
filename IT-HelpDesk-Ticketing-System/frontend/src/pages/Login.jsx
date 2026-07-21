@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
+import { Link } from "react-router-dom";
 
 function Login() {
 
@@ -80,7 +81,12 @@ function Login() {
                 <button type="submit">
                     Login
                 </button>
+<br />
+<br />
 
+<Link to="/forgot-password">
+    Forgot Password?
+</Link>
             </form>
 
         </div>
