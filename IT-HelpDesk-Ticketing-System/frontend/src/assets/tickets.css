@@ -1,0 +1,325 @@
+.ticket-page{
+    padding:30px;
+}
+
+.ticket-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.ticket-header h1{
+    margin:0;
+    font-size:32px;
+    color:#1e293b;
+}
+
+.create-btn{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:12px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:600;
+    transition:.2s;
+}
+
+.create-btn:hover{
+    background:#1d4ed8;
+}
+
+.ticket-card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.ticket-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.ticket-table th{
+    background:#f8fafc;
+    text-align:left;
+    padding:15px;
+    font-size:14px;
+    color:#64748b;
+}
+
+.ticket-table td{
+    padding:18px 15px;
+    border-top:1px solid #e5e7eb;
+}
+
+.ticket-table tr:hover{
+    background:#f8fafc;
+}
+
+.status{
+    padding:6px 12px;
+    border-radius:20px;
+    color:white;
+    font-size:13px;
+    font-weight:600;
+}
+
+.status-open{
+    background:#3b82f6;
+}
+
+.status-pending{
+    background:#f59e0b;
+}
+
+.status-resolved{
+    background:#22c55e;
+}
+
+.status-closed{
+    background:#64748b;
+}
+
+.priority-high{
+    color:#ef4444;
+    font-weight:bold;
+}
+
+.priority-medium{
+    color:#f59e0b;
+    font-weight:bold;
+}
+
+.priority-low{
+    color:#22c55e;
+    font-weight:bold;
+}
+
+.action-btn{
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    margin-right:6px;
+    cursor:pointer;
+}
+
+.view-btn{
+    background:#2563eb;
+    color:white;
+}
+
+.edit-btn{
+    background:#22c55e;
+    color:white;
+}
+
+.delete-btn{
+    background:#ef4444;
+    color:white;
+}
+.ticket-filter{
+
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+
+}
+
+.ticket-filter input,
+.ticket-filter select{
+
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    min-width:180px;
+
+}
+
+.filter-btn{
+
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:12px 20px;
+    cursor:pointer;
+
+}
+.page-card{
+
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+
+}
+
+.page-title{
+
+    margin-top:0;
+    color:#1e293b;
+    margin-bottom:25px;
+
+}
+
+.form-grid{
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+
+}
+
+.form-group{
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+.form-group label{
+
+    margin-bottom:8px;
+    font-weight:600;
+    color:#475569;
+
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select{
+
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #d1d5db;
+    font-size:15px;
+
+}
+
+.form-group textarea{
+
+    min-height:130px;
+    resize:vertical;
+
+}
+
+.full-width{
+
+    grid-column:1 / -1;
+
+}
+
+.save-btn{
+
+    margin-top:20px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:14px 28px;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+
+}
+
+.save-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+.detail-grid{
+
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+
+}
+
+.detail-box{
+
+    background:#f8fafc;
+    padding:20px;
+    border-radius:12px;
+
+}
+
+.detail-box h4{
+
+    margin-top:0;
+    color:#64748b;
+
+}
+
+.timeline{
+
+    margin-top:30px;
+
+}
+
+.timeline-item{
+
+    border-left:3px solid #2563eb;
+    padding-left:20px;
+    margin-bottom:20px;
+
+}.attachment-card{
+
+    margin-top:30px;
+    background:white;
+    border-radius:15px;
+    padding:25px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+
+}
+
+.upload-box{
+
+    display:flex;
+    gap:15px;
+    margin:20px 0;
+
+}
+
+.upload-btn{
+
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    cursor:pointer;
+
+}
+
+.attachment-item{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    margin-bottom:12px;
+
+}
+
+.download-btn{
+
+    background:#22c55e;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:10px 16px;
+    margin-right:8px;
+    cursor:pointer;
+
+}

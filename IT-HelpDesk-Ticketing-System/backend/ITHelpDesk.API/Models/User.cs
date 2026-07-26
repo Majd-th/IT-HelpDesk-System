@@ -52,8 +52,8 @@ public class User
 
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
-    public ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
-
+    public ICollection<ActivityLog> ActivityLogs { get; set; }
+        = new List<ActivityLog>();
     public ICollection<TicketAssignment> AssignedTicketsHistory { get; set; } = new List<TicketAssignment>();
 
     public ICollection<TicketAssignment> AssignedByHistory { get; set; } = new List<TicketAssignment>();
@@ -62,4 +62,5 @@ public class User
 
     public ICollection<KnowledgeBaseArticle> ApprovedArticles { get; set; } = new List<KnowledgeBaseArticle>();
     public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
+
 }

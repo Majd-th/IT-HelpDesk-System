@@ -80,6 +80,28 @@ builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
+builder.Services.AddScoped<
+    ITicketAttachmentRepository,
+    TicketAttachmentRepository>();
+
+
+
+
+
+
+
+builder.Services.AddScoped<
+    ITicketAttachmentRepository,
+    TicketAttachmentRepository>();
+
+builder.Services.AddScoped<
+    ITicketAttachmentService,
+    TicketAttachmentService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -91,6 +113,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowReact");
+
 
 app.UseAuthentication();
 

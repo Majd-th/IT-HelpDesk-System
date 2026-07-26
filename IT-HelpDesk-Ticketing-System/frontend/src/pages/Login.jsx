@@ -1,96 +1,125 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/authService";
-import { Link } from "react-router-dom";
+import "../styles/Login.css";
 
 function Login() {
 
-    const navigate = useNavigate();
+    const navigate=useNavigate();
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const[email,setEmail]=useState("");
 
-   
-    const handleLogin = async (e) => {
-    e.preventDefault();
+    const[password,setPassword]=useState("");
 
-    try {
+    async function handleLogin(e){
 
-        const result = await login(email, password);
+        e.preventDefault();
 
-        console.log(result);
+        try{
 
-        // Save JWT
-        localStorage.setItem("token", result.token);
+            const result=await login(email,password);
 
-        // Decode JWT
-        const payload = JSON.parse(atob(result.token.split(".")[1]));
+            localStorage.setItem("token",result.token);
 
-        const role =
-            payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            const payload=JSON.parse(atob(result.token.split(".")[1]));
 
-        console.log("Role:", role);
+            const role=payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+const fullName =
+payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
 
-        // Save role
-        localStorage.setItem("role", role);
+localStorage.setItem("fullName", fullName);
+            const name=payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
 
-        // Redirect based on role
-        if (role === "Admin") {
-            navigate("/admin");
+            localStorage.setItem("role",role);
+
+            localStorage.setItem("fullName",name);
+
+            if(role==="Admin")
+                navigate("/admin");
+
+            else if(role==="Manager")
+                navigate("/manager");
+
+            else if(role==="IT Support Agent")
+                navigate("/agent");
+
+            else
+                navigate("/employee");
+
         }
-        else if (role === "Manager") {
-            navigate("/manager");
-        }
-        else if (role === "IT Support Agent") {
-            navigate("/agent");
-        }
-        else {
-            navigate("/employee");
+
+        catch{
+
+            alert("Invalid credentials");
+
         }
 
-    } catch (error) {
-        console.error(error);
-        alert("Invalid credentials");
     }
-};
-    return (
-        <div>
 
-            <h1>IT HelpDesk Login</h1>
+    return(
 
-            <form onSubmit={handleLogin}>
+        <div className="login-page">
 
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+            <div className="login-card">
 
-                <br /><br />
+                <h1>
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                    IT HelpDesk
 
-                <br /><br />
+                </h1>
 
-                <button type="submit">
-                    Login
-                </button>
-<br />
-<br />
+                <p>
 
-<Link to="/forgot-password">
-    Forgot Password?
-</Link>
-            </form>
+                    Sign in to your account
+
+                </p>
+
+                <form onSubmit={handleLogin}>
+
+                    <input
+
+                        type="email"
+
+                        placeholder="Email"
+
+                        value={email}
+
+                        onChange={(e)=>setEmail(e.target.value)}
+
+                    />
+
+                    <input
+
+                        type="password"
+
+                        placeholder="Password"
+
+                        value={password}
+
+                        onChange={(e)=>setPassword(e.target.value)}
+
+                    />
+
+                    <button>
+
+                        Login
+
+                    </button>
+
+                </form>
+
+                <Link to="/forgot-password">
+
+                    Forgot Password?
+
+                </Link>
+
+            </div>
 
         </div>
+
     );
+
 }
 
 export default Login;

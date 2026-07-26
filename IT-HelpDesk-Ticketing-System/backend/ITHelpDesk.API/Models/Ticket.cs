@@ -42,4 +42,8 @@ public class Ticket
     public DateTime? ResolvedDate { get; set; }
 
     public DateTime? ClosedDate { get; set; }
+    public ICollection<ActivityLog> ActivityLogs { get; set; }
+    = new List<ActivityLog>();
+    public ICollection<TicketAttachment> Attachments { get; set; }
+    = new List<TicketAttachment>();
 }

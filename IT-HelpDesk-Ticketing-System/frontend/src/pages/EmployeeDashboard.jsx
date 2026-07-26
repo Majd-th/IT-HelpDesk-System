@@ -1,33 +1,93 @@
-import { getUser } from "../services/tokenService";
-import LogoutButton from "../components/LogoutButton";
+import { useEffect,useState } from "react";
 
-function EmployeeDashboard() {
+import Layout from "../components/Layout";
 
-    const user = getUser();
+import DashboardCard from "../components/DashboardCard";
 
-    return (
-        <div>
+import DashboardChart from "../components/DashboardChart";
 
-            <h1>Employee Dashboard</h1>
+import RecentTickets from "../components/RecentTickets";
 
-          
+import { getTickets } from "../services/ticketService";
 
-            <hr />
+import "../styles/Dashboard.css";
 
-            <h2>
-                Welcome, {user.firstName} {user.lastName}
-            </h2>
+function EmployeeDashboard(){
 
-            <p>
-                <strong>Email:</strong> {user.email}
-            </p>
+    const [tickets,setTickets]=useState([]);
 
-            <p>
-                <strong>Role:</strong> {user.role}
-            </p>
-  <LogoutButton />
-        </div>
+    useEffect(()=>{
+
+        load();
+
+    },[]);
+
+    async function load(){
+
+        setTickets(await getTickets());
+
+    }
+
+    return(
+
+        <Layout>
+
+            <div className="dashboard-container">
+
+                <div className="dashboard-cards">
+
+                    <DashboardCard
+
+                        title="Open"
+
+                        value={tickets.filter(t=>t.status==="Open").length}
+
+                        color="#3498db"
+
+                    />
+
+                    <DashboardCard
+
+                        title="Pending"
+
+                        value={tickets.filter(t=>t.status==="Pending").length}
+
+                        color="#f39c12"
+
+                    />
+
+                    <DashboardCard
+
+                        title="Resolved"
+
+                        value={tickets.filter(t=>t.status==="Resolved").length}
+
+                        color="#2ecc71"
+
+                    />
+
+                    <DashboardCard
+
+                        title="Critical"
+
+                        value={tickets.filter(t=>t.priority==="Critical").length}
+
+                        color="#e74c3c"
+
+                    />
+
+                </div>
+
+                <DashboardChart/>
+
+                <RecentTickets tickets={tickets}/>
+
+            </div>
+
+        </Layout>
+
     );
+
 }
 
 export default EmployeeDashboard;

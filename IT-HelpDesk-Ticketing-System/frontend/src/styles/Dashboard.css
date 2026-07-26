@@ -1,0 +1,46 @@
+.dashboard-container{
+    display:flex;
+    flex-direction:column;
+    gap:30px;
+}
+
+.dashboard-cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.dashboard-card{
+    background:#fff;
+    border-radius:16px;
+    padding:24px;
+    box-shadow:0 6px 20px rgba(0,0,0,.08);
+    transition:.25s;
+}
+
+.dashboard-card:hover{
+    transform:translateY(-4px);
+}
+
+.dashboard-card h4{
+    color:#666;
+    margin-bottom:10px;
+}
+
+.dashboard-card h1{
+    font-size:40px;
+    color:#222;
+    margin:0;
+}
+
+.dashboard-card table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.dashboard-card table th,
+.dashboard-card table td{
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #eee;
+} 

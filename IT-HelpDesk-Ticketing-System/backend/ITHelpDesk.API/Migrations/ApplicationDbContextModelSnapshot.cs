@@ -612,7 +612,7 @@ namespace ITHelpDesk.API.Migrations
             modelBuilder.Entity("ITHelpDesk.API.Models.ActivityLog", b =>
                 {
                     b.HasOne("ITHelpDesk.API.Models.Ticket", "Ticket")
-                        .WithMany()
+                        .WithMany("ActivityLogs")
                         .HasForeignKey("TicketId");
 
                     b.HasOne("ITHelpDesk.API.Models.User", "User")
@@ -746,7 +746,7 @@ namespace ITHelpDesk.API.Migrations
             modelBuilder.Entity("ITHelpDesk.API.Models.TicketAttachment", b =>
                 {
                     b.HasOne("ITHelpDesk.API.Models.Ticket", "Ticket")
-                        .WithMany()
+                        .WithMany("Attachments")
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -795,6 +795,13 @@ namespace ITHelpDesk.API.Migrations
             modelBuilder.Entity("ITHelpDesk.API.Models.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("ITHelpDesk.API.Models.Ticket", b =>
+                {
+                    b.Navigation("ActivityLogs");
+
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("ITHelpDesk.API.Models.User", b =>

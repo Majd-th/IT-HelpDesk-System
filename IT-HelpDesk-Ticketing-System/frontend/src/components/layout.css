@@ -1,0 +1,31 @@
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:#f3f4f6;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.layout{
+    height:100vh;
+}
+
+.layout-body{
+
+    display:flex;
+
+    height:calc(100vh - 70px);
+
+}
+
+.content{
+
+    flex:1;
+
+    padding:30px;
+
+    overflow:auto;
+
+}

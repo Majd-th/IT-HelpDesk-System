@@ -8,67 +8,108 @@ import AgentDashboard from "./pages/AgentDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 
+import Tickets from "./pages/Tickets";
+
+import CreateTicket from "./pages/CreateTicket";
+import EditTicket from "./pages/EditTicket";
+import TicketDetails from "./pages/TicketDetails";
 function App() {
     return (
-        <BrowserRouter>
+       <BrowserRouter>
 
-            <Routes>
+    <Routes>
 
-                <Route path="/" element={<Login />} />
-                <Route
-    path="/reset-password"
-    element={<ResetPassword />}
+        <Route path="/" element={<Login />} />
 
-/>
-<Route
-    path="/forgot-password"
-    element={<ForgotPassword />}
-/>
+        <Route
+            path="/reset-password"
+            element={<ResetPassword />}
+        />
 
-                <Route
-                    path="/admin"
-                    element={
-                        <ProtectedRoute allowedRole="Admin">
-                            <AdminDashboard />
-                        </ProtectedRoute>
-                    }
-                />
+        <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+        />
 
-                <Route
-    path="/manager"
+        <Route
+            path="/admin"
+            element={
+                <ProtectedRoute allowedRole="Admin">
+                    <AdminDashboard />
+                </ProtectedRoute>
+            }
+        />
+
+        <Route
+            path="/manager"
+            element={
+                <ProtectedRoute allowedRole="Manager">
+                    <ManagerDashboard />
+                </ProtectedRoute>
+            }
+        />
+
+        <Route
+            path="/agent"
+            element={
+                <ProtectedRoute allowedRole="IT Support Agent">
+                    <AgentDashboard />
+                </ProtectedRoute>
+            }
+        />
+
+        <Route
+            path="/employee"
+            element={
+                <ProtectedRoute allowedRole="Employee">
+                    <EmployeeDashboard />
+                </ProtectedRoute>
+            }
+        />
+
+    <Route
+    path="/tickets"
     element={
-        <ProtectedRoute allowedRole="Manager">
-            <ManagerDashboard />
+        <ProtectedRoute>
+            <Tickets />
         </ProtectedRoute>
     }
 />
-                    
-                
 
-                <Route
-                    path="/agent"
-                    element={
-                        <ProtectedRoute allowedRole="IT Support Agent">
-                            <AgentDashboard />
-                        </ProtectedRoute>
-                    }
-                />
+<Route
+    path="/tickets/new"
+    element={
+        <ProtectedRoute>
+            <CreateTicket />
+        </ProtectedRoute>
+    }
+/>
 
-                <Route
-                    path="/employee"
-                    element={
-                        <ProtectedRoute allowedRole="Employee">
-                            <EmployeeDashboard />
-                        </ProtectedRoute>
-                    }
-                />
+<Route
+    path="/tickets/:id"
+    element={
+        <ProtectedRoute>
+            <TicketDetails />
+        </ProtectedRoute>
+    }
+/>
 
-            </Routes>
+<Route
+    path="/tickets/edit/:id"
+    element={
+        <ProtectedRoute>
+            <EditTicket />
+        </ProtectedRoute>
+    }
+/>
+    </Routes>
 
-        </BrowserRouter>
+</BrowserRouter>
+        
     );
 }
 
