@@ -58,18 +58,17 @@ public class TicketController : ControllerBase
 
         var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)!.Value;
 
-        var success = await _ticketService.UpdateTicketAsync(
-            id,
-            request,
-            userId,
-            role);
-        var updated = await _ticketService.UpdateTicketAsync(id, request, userId, role);
+        var updated = await _ticketService.UpdateTicketAsync(
+    id,
+    request,
+    userId,
+    role);
 
         if (!updated)
             return NotFound();
 
         return NoContent();
-    }
+    }/*
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -77,18 +76,14 @@ public class TicketController : ControllerBase
 
         var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)!.Value;
 
-        var success = await _ticketService.DeleteTicketAsync(
-            id,
 
-            userId,
-            role);
         var deleted = await _ticketService.DeleteTicketAsync(id, userId, role);
 
         if (!deleted)
             return NotFound();
 
         return NoContent();
-    }
+    }*/
     [HttpGet("{id}/activity")]
     public async Task<IActionResult> GetActivity(int id)
     {
@@ -107,5 +102,25 @@ public class TicketController : ControllerBase
             filter.CreatedBefore);
 
         return Ok(tickets);
+    }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        Console.WriteLine($"DELETE endpoint hit. Ticket Id = {id}");
+
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var role = User.FindFirst(ClaimTypes.Role)!.Value;
+
+        Console.WriteLine($"UserId = {userId}");
+        Console.WriteLine($"Role = {role}");
+
+        var deleted = await _ticketService.DeleteTicketAsync(id, userId, role);
+
+        Console.WriteLine($"Deleted = {deleted}");
+
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
     }
 }

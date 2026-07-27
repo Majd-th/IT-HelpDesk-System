@@ -63,18 +63,26 @@ public class TicketService : ITicketService
 
         if (ticket.CreatedByUser == null)
             throw new Exception("CreatedByUser is null");
-
         return new TicketResponseDto
         {
             Id = ticket.Id,
-            ReferenceNumber = ticket.ReferenceNumber,
 
             Title = ticket.Title,
             Description = ticket.Description,
 
+            CategoryId = ticket.CategoryId,
+            PriorityId = ticket.PriorityId,
+            StatusId = ticket.StatusId,
+
             Category = ticket.Category.Name,
             Priority = ticket.Priority.Name,
             Status = ticket.Status.Name,
+            CreatedByUserId = ticket.CreatedByUserId,
+
+
+            ReferenceNumber = ticket.ReferenceNumber,
+
+
 
             CreatedBy = $"{ticket.CreatedByUser.FirstName} {ticket.CreatedByUser.LastName}",
 
@@ -92,17 +100,24 @@ public class TicketService : ITicketService
         var tickets = await _ticketRepository.GetAllAsync();
 
         return tickets.Select(ticket => new TicketResponseDto
-
         {
             Id = ticket.Id,
-            ReferenceNumber = ticket.ReferenceNumber,
 
             Title = ticket.Title,
             Description = ticket.Description,
+            CreatedByUserId = ticket.CreatedByUserId,
+
+            CategoryId = ticket.CategoryId,
+            PriorityId = ticket.PriorityId,
+            StatusId = ticket.StatusId,
 
             Category = ticket.Category.Name,
             Priority = ticket.Priority.Name,
             Status = ticket.Status.Name,
+
+            ReferenceNumber = ticket.ReferenceNumber,
+
+
 
             CreatedBy = $"{ticket.CreatedByUser.FirstName} {ticket.CreatedByUser.LastName}",
 
@@ -125,14 +140,22 @@ public class TicketService : ITicketService
         return new TicketResponseDto
         {
             Id = ticket.Id,
-            ReferenceNumber = ticket.ReferenceNumber,
 
             Title = ticket.Title,
             Description = ticket.Description,
+            CreatedByUserId = ticket.CreatedByUserId,
+            CategoryId = ticket.CategoryId,
+            PriorityId = ticket.PriorityId,
+            StatusId = ticket.StatusId,
 
             Category = ticket.Category.Name,
             Priority = ticket.Priority.Name,
             Status = ticket.Status.Name,
+
+
+            ReferenceNumber = ticket.ReferenceNumber,
+
+
 
             CreatedBy = $"{ticket.CreatedByUser.FirstName} {ticket.CreatedByUser.LastName}",
 
@@ -201,8 +224,8 @@ public class TicketService : ITicketService
         {
             return false;
         }
-
         await _ticketRepository.UpdateAsync(ticket);
+        await _ticketRepository.SaveChangesAsync();
 
         await _activityLogRepository.AddAsync(new ActivityLog
         {
@@ -216,39 +239,40 @@ public class TicketService : ITicketService
     public async Task<bool> DeleteTicketAsync(int id, int userId, string role)
     {
         var ticket = await _ticketRepository.GetByIdAsync(id);
-
+        Console.WriteLine($"Ticket: {ticket?.Id}");
+        Console.WriteLine($"Role: {role}");
+        Console.WriteLine($"User: {userId}");
+        Console.WriteLine($"Status: {ticket?.StatusId}");
+        Console.WriteLine($"Owner: {ticket?.CreatedByUserId}");
         if (ticket == null)
             return false;
-        // Employees can only modify their own tickets
         if (role == "Employee")
         {
             if (ticket.CreatedByUserId != userId)
                 return false;
 
-            if (ticket.StatusId != 1) // Open only
+            if (ticket.StatusId != 1)
                 return false;
         }
         else if (role == "IT Support Agent")
         {
-            return false; // Agents cannot delete
+            return false;
         }
-
-        // Manager/Admin can delete any ticket except Closed
-        if ((role == "Manager" || role == "Admin") && ticket.StatusId == 4)
+        else if (role == "Manager" || role == "Admin")
+        {
+            // Managers and Admins can delete any ticket
+        }
+        else
         {
             return false;
         }
         // Only Open tickets can be deleted
         if (ticket.StatusId != 1)
             return false;
+        await _activityLogRepository.DeleteByTicketIdAsync(ticket.Id);
 
         await _ticketRepository.DeleteAsync(ticket);
-        await _activityLogRepository.AddAsync(new ActivityLog
-        {
-            TicketId = ticket.Id,
-            UserId = userId,
-            Action = "Deleted ticket"
-        });
+        await _ticketRepository.SaveChangesAsync();
 
         return true;
 
@@ -284,18 +308,22 @@ public class TicketService : ITicketService
         var tickets = await _ticketRepository.FilterTicketsAsync(filter);
 
         return tickets.Select(ticket => new TicketResponseDto
-
-
         {
             Id = ticket.Id,
-            ReferenceNumber = ticket.ReferenceNumber,
 
             Title = ticket.Title,
             Description = ticket.Description,
+            CreatedByUserId = ticket.CreatedByUserId,
+            CategoryId = ticket.CategoryId,
+            PriorityId = ticket.PriorityId,
+            StatusId = ticket.StatusId,
 
             Category = ticket.Category.Name,
             Priority = ticket.Priority.Name,
             Status = ticket.Status.Name,
+
+            ReferenceNumber = ticket.ReferenceNumber,
+
 
             CreatedBy = $"{ticket.CreatedByUser.FirstName} {ticket.CreatedByUser.LastName}",
 

@@ -4,6 +4,7 @@ namespace ITHelpDesk.API.Interfaces;
 
 public interface IActivityLogRepository
 {
+    Task DeleteByTicketIdAsync(int ticketId);
     Task AddAsync(ActivityLog log);
 
     Task<List<ActivityLog>> GetByTicketIdAsync(int ticketId);

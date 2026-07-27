@@ -13,6 +13,16 @@ public class ActivityLogRepository : IActivityLogRepository
     {
         _context = context;
     }
+    public async Task DeleteByTicketIdAsync(int ticketId)
+    {
+        var logs = await _context.ActivityLogs
+            .Where(a => a.TicketId == ticketId)
+            .ToListAsync();
+
+        _context.ActivityLogs.RemoveRange(logs);
+
+        await _context.SaveChangesAsync();
+    }
 
     public async Task AddAsync(ActivityLog log)
     {

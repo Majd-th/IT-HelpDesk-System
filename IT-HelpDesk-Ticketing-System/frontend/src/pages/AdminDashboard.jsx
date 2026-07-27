@@ -11,8 +11,7 @@ import RecentTickets from "../components/RecentTickets";
 import { getTickets } from "../services/ticketService";
 
 import "../styles/Dashboard.css";
-
-function EmployeeDashboard(){
+function AdminDashboard(){
 
     const [tickets,setTickets]=useState([]);
 
@@ -90,4 +89,4 @@ function EmployeeDashboard(){
 
 }
 
-export default EmployeeDashboard;
+export default AdminDashboard;

@@ -4,7 +4,7 @@ function TicketFilter({ onFilter }) {
 
     const [filters, setFilters] = useState({
 
-        search: "",
+       search: "",
 
         categoryId: "",
 
@@ -68,12 +68,7 @@ function TicketFilter({ onFilter }) {
 
             <h3>Filters</h3>
 
-            <input
-                name="search"
-                placeholder="Search..."
-                value={filters.search}
-                onChange={change}
-            />
+           
 
             <input
                 name="categoryId"

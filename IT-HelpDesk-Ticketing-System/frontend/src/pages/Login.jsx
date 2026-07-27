@@ -22,6 +22,10 @@ function Login() {
             localStorage.setItem("token",result.token);
 
             const payload=JSON.parse(atob(result.token.split(".")[1]));
+            const userId =
+payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+localStorage.setItem("userId", userId);
 
             const role=payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 const fullName =

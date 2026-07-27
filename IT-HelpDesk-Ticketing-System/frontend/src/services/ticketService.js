@@ -1,6 +1,6 @@
 import axios from "axios";
 
-
+import api from "../api/axios";
 const API_URL = "http://localhost:5232/api/Ticket";
 
 function authHeader() {
@@ -60,6 +60,7 @@ export async function createTicket(ticket) {
 
 export async function updateTicket(id, ticket) {
 
+console.log(ticket);
     const response = await axios.put(
         `${API_URL}/${id}`,
         ticket,

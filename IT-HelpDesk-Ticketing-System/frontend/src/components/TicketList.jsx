@@ -2,9 +2,12 @@ import { Link } from "react-router-dom";
 
 function TicketList({ tickets, onDelete }) {
 
-    function statusClass(status){
+    const role = localStorage.getItem("role");
+    const currentUserId = Number(localStorage.getItem("userId"));
 
-        switch(status){
+    function statusClass(status) {
+
+        switch (status) {
 
             case "Open":
                 return "status status-open";
@@ -21,12 +24,11 @@ function TicketList({ tickets, onDelete }) {
             default:
                 return "status";
         }
-
     }
 
-    function priorityClass(priority){
+    function priorityClass(priority) {
 
-        switch(priority){
+        switch (priority) {
 
             case "High":
                 return "priority-high";
@@ -36,12 +38,10 @@ function TicketList({ tickets, onDelete }) {
 
             default:
                 return "priority-low";
-
         }
-
     }
 
-    return(
+    return (
 
         <div className="ticket-card">
 
@@ -65,77 +65,85 @@ function TicketList({ tickets, onDelete }) {
 
                 <tbody>
 
-                    {tickets.map(ticket=>(
+                    {tickets.map((ticket) => {
 
-                        <tr key={ticket.id}>
+                        const isOwner =
+                            ticket.createdByUserId === currentUserId;
 
-                            <td>{ticket.referenceNumber}</td>
+                        return (
 
-                            <td>{ticket.title}</td>
+                            <tr key={ticket.id}>
 
-                            <td>{ticket.category}</td>
+                                <td>{ticket.referenceNumber}</td>
 
-                            <td>
+                                <td>{ticket.title}</td>
 
-                                <span className={priorityClass(ticket.priority)}>
+                                <td>{ticket.category}</td>
 
-                                    {ticket.priority}
+                                <td>
 
-                                </span>
+                                    <span className={priorityClass(ticket.priority)}>
 
-                            </td>
+                                        {ticket.priority}
 
-                            <td>
+                                    </span>
 
-                                <span className={statusClass(ticket.status)}>
+                                </td>
 
-                                    {ticket.status}
+                                <td>
 
-                                </span>
+                                    <span className={statusClass(ticket.status)}>
 
-                            </td>
+                                        {ticket.status}
 
-                            <td>{ticket.createdBy}</td>
+                                    </span>
 
-                            <td>
+                                </td>
 
-                                <Link to={`/tickets/${ticket.id}`}>
+                                <td>{ticket.createdBy}</td>
 
-                                    <button className="action-btn view-btn">
+                                <td>
 
-                                        View
+                                    <Link to={`/tickets/${ticket.id}`}>
+                                        <button className="action-btn view-btn">
+                                            View
+                                        </button>
+                                    </Link>
 
-                                    </button>
+                                    {(role === "Admin" ||
+                                        role === "Manager" ||
+                                        role === "IT Support Agent" ||
+                                        (role === "Employee" &&
+                                            isOwner &&
+                                            ticket.status === "Open")) && (
 
-                                </Link>
+                                        <Link to={`/tickets/edit/${ticket.id}`}>
+                                            <button className="action-btn edit-btn">
+                                                Edit
+                                            </button>
+                                        </Link>
 
-                                <Link to={`/tickets/edit/${ticket.id}`}>
+                                    )}
 
-                                    <button className="action-btn edit-btn">
+                                    {(role === "Admin" ||
+                                        role === "Manager") && (
 
-                                        Edit
+                                        <button
+                                            className="action-btn delete-btn"
+                                            onClick={() => onDelete(ticket.id)}
+                                        >
+                                            Delete
+                                        </button>
 
-                                    </button>
+                                    )}
 
-                                </Link>
+                                </td>
 
-                                <button
+                            </tr>
 
-                                    className="action-btn delete-btn"
+                        );
 
-                                    onClick={()=>onDelete(ticket.id)}
-
-                                >
-
-                                    Delete
-
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    ))}
+                    })}
 
                 </tbody>
 

@@ -37,8 +37,11 @@ else if (role === "IT Support Agent")
           <NavLink to={dashboardLink}>Dashboard</NavLink>
 
             <NavLink to="/tickets">Tickets</NavLink>
-
-            <NavLink to="/tickets/new">Create Ticket</NavLink>
+{role !== "IT Support Agent" && (
+    <NavLink to="/tickets/new">
+        Create Ticket
+    </NavLink>
+)}
 
             <NavLink to="/profile">Profile</NavLink>
 

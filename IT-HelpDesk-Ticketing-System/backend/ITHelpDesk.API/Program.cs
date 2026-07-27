@@ -91,12 +91,20 @@ builder.Services.AddScoped<
 
 
 
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
 
+builder.Services.AddScoped<IPriorityRepository, PriorityRepository>();
+builder.Services.AddScoped<IPriorityService, PriorityService>();
+
+builder.Services.AddScoped<IStatusRepository, StatusRepository>();
+builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<
     ITicketAttachmentRepository,
     TicketAttachmentRepository>();
+
 
 builder.Services.AddScoped<
     ITicketAttachmentService,
