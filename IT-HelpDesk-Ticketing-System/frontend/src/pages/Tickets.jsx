@@ -14,74 +14,100 @@ import {
 import "../assets/tickets.css";
 
 function Tickets() {
+    const [tickets, setTickets] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const [tickets,setTickets]=useState([]);
+    const role = localStorage.getItem("role");
 
-    useEffect(()=>{
+    const canCreateTicket =
+        role === "Employee" ||
+        role === "Admin";
+
+    useEffect(() => {
         loadTickets();
-    },[]);
+    }, []);
 
-    async function loadTickets(){
-        const data=await getTickets();
-        setTickets(data);
+    async function loadTickets() {
+        try {
+            setLoading(true);
+
+            const data = await getTickets();
+
+            setTickets(data);
+        } catch (error) {
+            console.error("Could not load tickets:", error);
+            alert("Could not load tickets.");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    async function handleDelete(id){
-
-        if(!window.confirm("Delete this ticket?"))
+    async function handleDelete(id) {
+        if (!window.confirm("Delete this ticket?")) {
             return;
+        }
 
-        await deleteTicket(id);
+        try {
+            await deleteTicket(id);
+            await loadTickets();
+        } catch (error) {
+            console.error("Delete failed:", error);
 
-        loadTickets();
+            alert(
+                error.response?.data?.message ||
+                "You are not allowed to delete this ticket."
+            );
+        }
     }
 
-    async function handleFilter(filters){
+    async function handleFilter(filters) {
+        try {
+            setLoading(true);
 
-        const data=await filterTickets(filters);
+            const data = await filterTickets(filters);
 
-        setTickets(data);
+            setTickets(data);
+        } catch (error) {
+            console.error("Filter failed:", error);
+            alert("Could not filter tickets.");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    return(
-
+    return (
         <Layout>
-
             <div className="ticket-page">
-
                 <div className="ticket-header">
-
                     <h1>Tickets</h1>
 
-                    <Link to="/tickets/new">
-
-                        <button className="create-btn">
-
-                            + Create Ticket
-
-                        </button>
-
-                    </Link>
-
+                    {canCreateTicket && (
+                        <Link to="/tickets/new">
+                            <button className="create-btn">
+                                + Create Ticket
+                            </button>
+                        </Link>
+                    )}
                 </div>
 
                 <TicketFilter
                     onFilter={handleFilter}
+                    onReset={loadTickets}
                 />
 
-                <br/>
+                <br />
 
-                <TicketList
-                    tickets={tickets}
-                    onDelete={handleDelete}
-                />
-
+                {loading ? (
+                    <p>Loading tickets...</p>
+                ) : (
+                    <TicketList
+                        tickets={tickets}
+                        onDelete={handleDelete}
+                    />
+                )}
             </div>
-
         </Layout>
-
     );
-
 }
 
 export default Tickets;

@@ -10,5 +10,6 @@ public class TicketFilterDto
 
     public DateTime? CreatedAfter { get; set; }
 
+    public string? Search { get; set; }
     public DateTime? CreatedBefore { get; set; }
 }

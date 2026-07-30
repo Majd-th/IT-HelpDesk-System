@@ -5,11 +5,24 @@ namespace ITHelpDesk.API.Interfaces;
 
 public interface ITicketAttachmentService
 {
-    Task UploadAsync(int ticketId, IFormFile file, int userId);
-    Task<List<AttachmentResponseDto>> GetAllAsync(int ticketId);
-    Task<List<AttachmentResponseDto>> GetAttachmentsAsync(int ticketId);
+    Task UploadAsync(
+        int ticketId,
+        IFormFile file,
+        int userId
+    );
 
-    Task<(byte[] File, string ContentType, string FileName)> DownloadAsync(int attachmentId);
+    Task<List<AttachmentResponseDto>>
+        GetAttachmentsAsync(int ticketId);
 
-    Task<bool> DeleteAsync(int attachmentId, int userId);
+    Task<(
+        byte[] File,
+        string ContentType,
+        string FileName
+    )> DownloadAsync(int attachmentId);
+
+    Task<bool> DeleteAsync(
+        int attachmentId,
+        int userId,
+        string role
+    );
 }

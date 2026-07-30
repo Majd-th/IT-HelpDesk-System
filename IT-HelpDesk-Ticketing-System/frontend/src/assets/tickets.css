@@ -323,3 +323,63 @@
     cursor:pointer;
 
 }
+.filter-date-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.filter-date-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.filter-date-group input {
+    min-width: 225px;
+    height: 53px;
+    padding: 0 16px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+
+    background-color: #ffffff;
+    color: #111827;
+}.status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 95px;
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.status-open {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-in-progress {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-pending {
+    background-color: #ede9fe;
+    color: #6d28d9;
+}
+
+.status-resolved {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.status-closed {
+    background-color: #e5e7eb;
+    color: #374151;
+}

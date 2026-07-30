@@ -8,8 +8,21 @@ public interface IAuthService
     Task<bool> RegisterAsync(RegisterRequestDto request);
 
     Task<string?> LoginAsync(LoginRequestDto request);
-    Task<UserResponseDto?> GetCurrentUserAsync(ClaimsPrincipal userClaims);
-    Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto request);
 
-    Task<bool> ResetPasswordAsync(ResetPasswordRequestDto request);
+    Task<UserResponseDto?> GetCurrentUserAsync(
+        ClaimsPrincipal userClaims);
+
+    Task<bool> ForgotPasswordAsync(
+        ForgotPasswordRequestDto request);
+
+    Task<bool> ResetPasswordAsync(
+        ResetPasswordRequestDto request);
+
+    Task<UserResponseDto?> UpdateProfileAsync(
+        ClaimsPrincipal userClaims,
+        UpdateProfileRequestDto request);
+
+    Task<(bool Success, string Message)> ChangePasswordAsync(
+        ClaimsPrincipal userClaims,
+        ChangePasswordRequestDto request);
 }

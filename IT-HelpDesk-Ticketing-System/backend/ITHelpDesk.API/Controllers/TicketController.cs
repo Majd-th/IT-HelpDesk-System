@@ -92,34 +92,34 @@ public class TicketController : ControllerBase
         return Ok(activity);
     }
     [HttpGet("filter")]
-    public async Task<IActionResult> Filter([FromQuery] TicketFilterDto filter)
+    public async Task<IActionResult> Filter(
+     [FromQuery] TicketFilterDto filter)
     {
-        var tickets = await _ticketService.FilterTicketsAsync(
-            filter.CategoryId,
-            filter.PriorityId,
-            filter.StatusId,
-            filter.CreatedAfter,
-            filter.CreatedBefore);
+        var tickets =
+            await _ticketService.FilterTicketsAsync(filter);
 
         return Ok(tickets);
     }
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        Console.WriteLine($"DELETE endpoint hit. Ticket Id = {id}");
+        int userId = int.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var role = User.FindFirst(ClaimTypes.Role)!.Value;
+        string role = User.FindFirstValue(ClaimTypes.Role)!;
 
-        Console.WriteLine($"UserId = {userId}");
-        Console.WriteLine($"Role = {role}");
-
-        var deleted = await _ticketService.DeleteTicketAsync(id, userId, role);
-
-        Console.WriteLine($"Deleted = {deleted}");
+        bool deleted = await _ticketService.DeleteTicketAsync(
+            id,
+            userId,
+            role);
 
         if (!deleted)
-            return NotFound();
+        {
+            return BadRequest(new
+            {
+                message = "You are not allowed to delete this ticket, or work has already started."
+            });
+        }
 
         return NoContent();
     }

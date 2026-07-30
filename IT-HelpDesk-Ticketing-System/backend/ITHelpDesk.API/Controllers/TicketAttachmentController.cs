@@ -1,8 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ITHelpDesk.API.Interfaces;
-using ITHelpDesk.API.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ITHelpDesk.API.Controllers;
 
@@ -20,51 +19,111 @@ public class TicketAttachmentController : ControllerBase
     }
 
     [HttpPost("{ticketId}")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> Upload(
      int ticketId,
      IFormFile file)
     {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new
+            {
+                message = "Please select a file."
+            });
+        }
+
         int userId = int.Parse(
-            User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            User.FindFirstValue(
+                ClaimTypes.NameIdentifier)!
+        );
 
-        await _attachmentService.UploadAsync(
-            ticketId,
-            file,
-            userId);
+        try
+        {
+            await _attachmentService.UploadAsync(
+                ticketId,
+                file,
+                userId
+            );
 
-        return Ok("File uploaded successfully.");
+            return Ok(new
+            {
+                message = "Attachment uploaded successfully."
+            });
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
     }
 
-    [HttpGet("{ticketId}")]
-    public async Task<IActionResult> GetAll(int ticketId)
+    [HttpGet("ticket/{ticketId}")]
+    public async Task<IActionResult> GetByTicket(
+        int ticketId)
     {
-        return Ok(await _attachmentService.GetAllAsync(ticketId));
+        var attachments =
+            await _attachmentService
+                .GetAttachmentsAsync(ticketId);
+
+        return Ok(attachments);
     }
+
+    [HttpGet("download/{attachmentId}")]
+    public async Task<IActionResult> Download(
+        int attachmentId)
+    {
+        try
+        {
+            var file =
+                await _attachmentService
+                    .DownloadAsync(attachmentId);
+
+            return File(
+                file.File,
+                file.ContentType,
+                file.FileName
+            );
+        }
+        catch (FileNotFoundException exception)
+        {
+            return NotFound(new
+            {
+                message = exception.Message
+            });
+        }
+    }
+
     [HttpDelete("{attachmentId}")]
-    public async Task<IActionResult> Delete(int attachmentId)
+    public async Task<IActionResult> Delete(
+        int attachmentId)
     {
         int userId = int.Parse(
-            User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            User.FindFirstValue(
+                ClaimTypes.NameIdentifier)!
+        );
 
-        bool success =
+        string role =
+            User.FindFirstValue(
+                ClaimTypes.Role) ?? "";
+
+        bool deleted =
             await _attachmentService.DeleteAsync(
                 attachmentId,
-                userId);
+                userId,
+                role
+            );
 
-        if (!success)
-            return NotFound();
+        if (!deleted)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "You cannot delete this attachment."
+            });
+        }
 
         return NoContent();
-    }
-    [HttpGet("download/{attachmentId}")]
-    public async Task<IActionResult> Download(int attachmentId)
-    {
-        var file = await _attachmentService.DownloadAsync(
-            attachmentId);
-
-        return File(
-            file.File,
-            file.ContentType,
-            file.FileName);
     }
 }

@@ -86,10 +86,14 @@ public class AuthService : IAuthService
         // Generate JWT
         return _jwtHelper.GenerateToken(user);
     }
-    public async Task<UserResponseDto?> GetCurrentUserAsync(ClaimsPrincipal userClaims)
+    public async Task<UserResponseDto?> GetCurrentUserAsync(
+    ClaimsPrincipal userClaims)
     {
-        var userId = int.Parse(
-            userClaims.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userIdText = userClaims.FindFirst(
+            ClaimTypes.NameIdentifier)?.Value;
+
+        if (!int.TryParse(userIdText, out int userId))
+            return null;
 
         var user = await _userRepository.GetUserByIdAsync(userId);
 
@@ -102,7 +106,9 @@ public class AuthService : IAuthService
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Role = user.Role.Name
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role.Name,
+            IsActive = user.IsActive
         };
     }
     public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto request)
@@ -162,5 +168,119 @@ public class AuthService : IAuthService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+    public async Task<UserResponseDto?> UpdateProfileAsync(
+    ClaimsPrincipal userClaims,
+    UpdateProfileRequestDto request)
+    {
+        var userIdText = userClaims.FindFirst(
+            ClaimTypes.NameIdentifier)?.Value;
+
+        if (!int.TryParse(userIdText, out int userId))
+            return null;
+
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
+        if (user == null)
+            return null;
+
+        string normalizedEmail =
+            request.Email.Trim().ToLower();
+
+        var existingUser =
+            await _userRepository.GetUserByEmailAsync(
+                normalizedEmail);
+
+        if (
+            existingUser != null &&
+            existingUser.Id != user.Id
+        )
+        {
+            throw new InvalidOperationException(
+                "This email address is already being used.");
+        }
+
+        user.FirstName = request.FirstName.Trim();
+        user.LastName = request.LastName.Trim();
+        user.Email = normalizedEmail;
+        user.PhoneNumber = string.IsNullOrWhiteSpace(
+            request.PhoneNumber)
+                ? null
+                : request.PhoneNumber.Trim();
+
+        await _userRepository.UpdateAsync(user);
+
+        return new UserResponseDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role.Name,
+            IsActive = user.IsActive
+        };
+    }
+
+    public async Task<(bool Success, string Message)>
+        ChangePasswordAsync(
+            ClaimsPrincipal userClaims,
+            ChangePasswordRequestDto request)
+    {
+        var userIdText = userClaims.FindFirst(
+            ClaimTypes.NameIdentifier)?.Value;
+
+        if (!int.TryParse(userIdText, out int userId))
+        {
+            return (
+                false,
+                "The authenticated user could not be identified."
+            );
+        }
+
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
+        if (user == null)
+            return (false, "User not found.");
+
+        bool currentPasswordIsCorrect =
+            BCrypt.Net.BCrypt.Verify(
+                request.CurrentPassword,
+                user.PasswordHash);
+
+        if (!currentPasswordIsCorrect)
+        {
+            return (
+                false,
+                "The current password is incorrect."
+            );
+        }
+
+        if (request.NewPassword != request.ConfirmPassword)
+        {
+            return (
+                false,
+                "The new passwords do not match."
+            );
+        }
+
+        if (request.CurrentPassword == request.NewPassword)
+        {
+            return (
+                false,
+                "The new password must be different from the current password."
+            );
+        }
+
+        user.PasswordHash =
+            BCrypt.Net.BCrypt.HashPassword(
+                request.NewPassword);
+
+        await _userRepository.UpdateAsync(user);
+
+        return (
+            true,
+            "Password changed successfully."
+        );
     }
 }

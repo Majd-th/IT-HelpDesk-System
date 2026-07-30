@@ -96,6 +96,57 @@ public class AuthController : ControllerBase
 
         return Ok(user);
     }
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile(
+    UpdateProfileRequestDto request)
+    {
+        try
+        {
+            var user = await _authService.UpdateProfileAsync(
+                User,
+                request);
+
+            if (user == null)
+                return NotFound(new
+                {
+                    message = "User not found."
+                });
+
+            return Ok(user);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
+    }
+
+    [Authorize]
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword(
+        ChangePasswordRequestDto request)
+    {
+        var result =
+            await _authService.ChangePasswordAsync(
+                User,
+                request);
+
+        if (!result.Success)
+        {
+            return BadRequest(new
+            {
+                message = result.Message
+            });
+        }
+
+        return Ok(new
+        {
+            message = result.Message
+        });
+    }
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(
     ForgotPasswordRequestDto request)

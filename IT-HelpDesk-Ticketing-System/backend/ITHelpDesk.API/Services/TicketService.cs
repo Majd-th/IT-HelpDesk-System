@@ -186,7 +186,13 @@ public class TicketService : ITicketService
             if (ticket.CreatedByUserId != userId)
                 return false;
 
-            if (ticket.StatusId != 1)
+            bool isOpen = string.Equals(
+                ticket.Status?.Name,
+                "Open",
+                StringComparison.OrdinalIgnoreCase
+            );
+
+            if (!isOpen)
                 return false;
 
             ticket.Title = request.Title;
@@ -236,47 +242,51 @@ public class TicketService : ITicketService
 
         return true;
     }
-    public async Task<bool> DeleteTicketAsync(int id, int userId, string role)
+    public async Task<bool> DeleteTicketAsync(
+    int id,
+    int userId,
+    string role)
     {
         var ticket = await _ticketRepository.GetByIdAsync(id);
-        Console.WriteLine($"Ticket: {ticket?.Id}");
-        Console.WriteLine($"Role: {role}");
-        Console.WriteLine($"User: {userId}");
-        Console.WriteLine($"Status: {ticket?.StatusId}");
-        Console.WriteLine($"Owner: {ticket?.CreatedByUserId}");
+
         if (ticket == null)
             return false;
+
+        // Admin has no deletion restrictions.
+        if (role == "Admin")
+        {
+            await _activityLogRepository.DeleteByTicketIdAsync(ticket.Id);
+
+            await _ticketRepository.DeleteAsync(ticket);
+            await _ticketRepository.SaveChangesAsync();
+
+            return true;
+        }
+
         if (role == "Employee")
         {
-            if (ticket.CreatedByUserId != userId)
+            bool isOwner =
+                ticket.CreatedByUserId == userId;
+
+            bool workHasNotStarted = string.Equals(
+                ticket.Status?.Name,
+                "Open",
+                StringComparison.OrdinalIgnoreCase
+            );
+
+            if (!isOwner || !workHasNotStarted)
                 return false;
 
-            if (ticket.StatusId != 1)
-                return false;
-        }
-        else if (role == "IT Support Agent")
-        {
-            return false;
-        }
-        else if (role == "Manager" || role == "Admin")
-        {
-            // Managers and Admins can delete any ticket
-        }
-        else
-        {
-            return false;
-        }
-        // Only Open tickets can be deleted
-        if (ticket.StatusId != 1)
-            return false;
-        await _activityLogRepository.DeleteByTicketIdAsync(ticket.Id);
+            await _activityLogRepository
+                .DeleteByTicketIdAsync(ticket.Id);
 
-        await _ticketRepository.DeleteAsync(ticket);
-        await _ticketRepository.SaveChangesAsync();
+            await _ticketRepository.DeleteAsync(ticket);
+            await _ticketRepository.SaveChangesAsync();
 
-        return true;
-
-
+            return true;
+        }
+        // Managers and IT agents cannot delete tickets.
+        return false;
     }
     public async Task<List<ActivityLogResponseDto>> GetTicketActivityAsync(int ticketId)
     {
@@ -289,51 +299,52 @@ public class TicketService : ITicketService
             CreatedDate = log.CreatedDate
         }).ToList();
     }
-    public async Task<List<TicketResponseDto>> FilterTicketsAsync(
-        int? categoryId,
-        int? priorityId,
-        int? statusId,
-        DateTime? createdAfter,
-        DateTime? createdBefore)
+    public async Task<List<TicketResponseDto>>
+    FilterTicketsAsync(TicketFilterDto filter)
     {
-        var filter = new TicketFilterDto
-        {
-            CategoryId = categoryId,
-            PriorityId = priorityId,
-            StatusId = statusId,
-            CreatedAfter = createdAfter,
-            CreatedBefore = createdBefore
-        };
+        var tickets =
+            await _ticketRepository.FilterTicketsAsync(filter);
 
-        var tickets = await _ticketRepository.FilterTicketsAsync(filter);
+        return tickets.Select(ticket =>
+            new TicketResponseDto
+            {
+                Id = ticket.Id,
 
-        return tickets.Select(ticket => new TicketResponseDto
-        {
-            Id = ticket.Id,
+                Title = ticket.Title,
+                Description = ticket.Description,
 
-            Title = ticket.Title,
-            Description = ticket.Description,
-            CreatedByUserId = ticket.CreatedByUserId,
-            CategoryId = ticket.CategoryId,
-            PriorityId = ticket.PriorityId,
-            StatusId = ticket.StatusId,
+                CreatedByUserId =
+                    ticket.CreatedByUserId,
 
-            Category = ticket.Category.Name,
-            Priority = ticket.Priority.Name,
-            Status = ticket.Status.Name,
+                CategoryId = ticket.CategoryId,
+                PriorityId = ticket.PriorityId,
+                StatusId = ticket.StatusId,
 
-            ReferenceNumber = ticket.ReferenceNumber,
+                Category =
+                    ticket.Category?.Name ?? "",
 
+                Priority =
+                    ticket.Priority?.Name ?? "",
 
-            CreatedBy = $"{ticket.CreatedByUser.FirstName} {ticket.CreatedByUser.LastName}",
+                Status =
+                    ticket.Status?.Name ?? "",
 
-            CreatedDate = ticket.CreatedDate,
-            DueDate = ticket.DueDate,
-            ResolvedDate = ticket.ResolvedDate,
-            ClosedDate = ticket.ClosedDate,
+                ReferenceNumber =
+                    ticket.ReferenceNumber,
 
-            Solution = ticket.Solution
+                CreatedBy =
+                    ticket.CreatedByUser == null
+                        ? ""
+                        : $"{ticket.CreatedByUser.FirstName} " +
+                          $"{ticket.CreatedByUser.LastName}",
 
-        }).ToList();
+                CreatedDate = ticket.CreatedDate,
+                DueDate = ticket.DueDate,
+                ResolvedDate = ticket.ResolvedDate,
+                ClosedDate = ticket.ClosedDate,
+
+                Solution = ticket.Solution
+            })
+            .ToList();
     }
 }

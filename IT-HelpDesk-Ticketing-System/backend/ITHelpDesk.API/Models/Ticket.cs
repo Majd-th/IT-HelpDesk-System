@@ -46,4 +46,6 @@ public class Ticket
     = new List<ActivityLog>();
     public ICollection<TicketAttachment> Attachments { get; set; }
     = new List<TicketAttachment>();
+    public ICollection<TicketAssignment> AssignmentHistory { get; set; }
+    = new List<TicketAssignment>();
 }

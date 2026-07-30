@@ -22,6 +22,7 @@ public class TicketRepository : ITicketRepository
             .Include(t => t.Priority)
             .Include(t => t.Status)
             .Include(t => t.CreatedByUser)
+            .OrderByDescending(t => t.CreatedDate)
             .ToListAsync();
     }
 
@@ -43,12 +44,14 @@ public class TicketRepository : ITicketRepository
     public Task UpdateAsync(Ticket ticket)
     {
         _context.Tickets.Update(ticket);
+
         return Task.CompletedTask;
     }
 
     public Task DeleteAsync(Ticket ticket)
     {
         _context.Tickets.Remove(ticket);
+
         return Task.CompletedTask;
     }
 
@@ -57,39 +60,98 @@ public class TicketRepository : ITicketRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<ActivityLog>> GetActivityLogsAsync(int ticketId)
+    public async Task<List<Ticket>> FilterTicketsAsync(
+        TicketFilterDto filter)
     {
-        return await _context.ActivityLogs
-            .Include(a => a.User)
-            .Where(a => a.TicketId == ticketId)
-            .OrderByDescending(a => a.CreatedDate)
-            .ToListAsync();
-    }
-
-    public async Task<List<Ticket>> FilterTicketsAsync(TicketFilterDto filter)
-    {
-        var query = _context.Tickets
+        IQueryable<Ticket> query = _context.Tickets
             .Include(t => t.Category)
             .Include(t => t.Priority)
             .Include(t => t.Status)
-            .Include(t => t.CreatedByUser)
-            .AsQueryable();
+            .Include(t => t.CreatedByUser);
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            string search = filter.Search.Trim();
+
+            query = query.Where(t =>
+                EF.Functions.Like(
+                    t.Title,
+                    $"%{search}%"
+                ) ||
+                EF.Functions.Like(
+                    t.Description,
+                    $"%{search}%"
+                ) ||
+                EF.Functions.Like(
+                    t.ReferenceNumber,
+                    $"%{search}%"
+                ) ||
+                EF.Functions.Like(
+                    t.Category.Name,
+                    $"%{search}%"
+                ) ||
+                EF.Functions.Like(
+                    t.Priority.Name,
+                    $"%{search}%"
+                ) ||
+                EF.Functions.Like(
+                    t.Status.Name,
+                    $"%{search}%"
+                )
+            );
+        }
 
         if (filter.CategoryId.HasValue)
-            query = query.Where(t => t.CategoryId == filter.CategoryId.Value);
+        {
+            query = query.Where(t =>
+                t.CategoryId == filter.CategoryId.Value);
+        }
 
         if (filter.PriorityId.HasValue)
-            query = query.Where(t => t.PriorityId == filter.PriorityId.Value);
+        {
+            query = query.Where(t =>
+                t.PriorityId == filter.PriorityId.Value);
+        }
 
         if (filter.StatusId.HasValue)
-            query = query.Where(t => t.StatusId == filter.StatusId.Value);
+        {
+            query = query.Where(t =>
+                t.StatusId == filter.StatusId.Value);
+        }
 
         if (filter.CreatedAfter.HasValue)
-            query = query.Where(t => t.CreatedDate >= filter.CreatedAfter.Value);
+        {
+            query = query.Where(t =>
+                t.CreatedDate >= filter.CreatedAfter.Value);
+        }
 
         if (filter.CreatedBefore.HasValue)
-            query = query.Where(t => t.CreatedDate <= filter.CreatedBefore.Value);
+        {
+            DateTime createdBefore =
+                filter.CreatedBefore.Value;
 
-        return await query.ToListAsync();
+            /*
+             * A date input normally produces midnight.
+             * Adding one day allows the selected end date
+             * to include the entire day.
+             */
+            if (createdBefore.TimeOfDay == TimeSpan.Zero)
+            {
+                createdBefore =
+                    createdBefore.Date.AddDays(1);
+
+                query = query.Where(t =>
+                    t.CreatedDate < createdBefore);
+            }
+            else
+            {
+                query = query.Where(t =>
+                    t.CreatedDate <= createdBefore);
+            }
+        }
+
+        return await query
+            .OrderByDescending(t => t.CreatedDate)
+            .ToListAsync();
     }
 }

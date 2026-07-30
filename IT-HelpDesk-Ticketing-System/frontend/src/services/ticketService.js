@@ -87,37 +87,61 @@ export async function deleteTicket(id) {
 // ======================
 // FILTER
 // ======================
-
 export async function filterTickets(filters) {
-
     const params = new URLSearchParams();
 
-    if (filters.search)
-        params.append("search", filters.search);
+    if (filters.search?.trim()) {
+        params.append(
+            "search",
+            filters.search.trim()
+        );
+    }
 
-    if (filters.categoryId)
-        params.append("categoryId", filters.categoryId);
+    if (filters.categoryId) {
+        params.append(
+            "categoryId",
+            filters.categoryId
+        );
+    }
 
-    if (filters.priorityId)
-        params.append("priorityId", filters.priorityId);
+    if (filters.priorityId) {
+        params.append(
+            "priorityId",
+            filters.priorityId
+        );
+    }
 
-    if (filters.statusId)
-        params.append("statusId", filters.statusId);
+    if (filters.statusId) {
+        params.append(
+            "statusId",
+            filters.statusId
+        );
+    }
 
-    if (filters.createdAfter)
-        params.append("createdAfter", filters.createdAfter);
+    if (filters.createdAfter) {
+        params.append(
+            "createdAfter",
+            filters.createdAfter
+        );
+    }
 
-    if (filters.createdBefore)
-        params.append("createdBefore", filters.createdBefore);
+    if (filters.createdBefore) {
+        params.append(
+            "createdBefore",
+            filters.createdBefore
+        );
+    }
 
     const response = await axios.get(
-        `${API_URL}/filter?${params.toString()}`,
-        authHeader()
+        `${API_URL}/filter`,
+        {
+            ...authHeader(),
+            params
+        }
     );
 
     return response.data;
 }
-
 
 
 export async function getActivityLog(id){

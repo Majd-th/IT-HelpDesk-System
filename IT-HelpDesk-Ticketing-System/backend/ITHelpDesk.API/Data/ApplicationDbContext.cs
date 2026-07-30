@@ -118,5 +118,11 @@ new Role
             new Status { Id = 4, Name = "Resolved", DisplayOrder = 4 },
             new Status { Id = 5, Name = "Closed", DisplayOrder = 5 }
         );
+
+        modelBuilder.Entity<TicketAssignment>()
+    .HasOne(a => a.Ticket)
+    .WithMany(t => t.AssignmentHistory)
+    .HasForeignKey(a => a.TicketId)
+    .OnDelete(DeleteBehavior.Cascade);
     }
 }

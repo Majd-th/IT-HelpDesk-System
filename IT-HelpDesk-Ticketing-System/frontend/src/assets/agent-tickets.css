@@ -1,0 +1,298 @@
+.agent-ticket-page {
+    width: 100%;
+}
+
+.agent-ticket-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.agent-ticket-heading h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 32px;
+}
+
+.agent-ticket-heading p {
+    margin: 8px 0 0;
+    color: #6b7280;
+}
+
+.agent-refresh-button,
+.agent-primary-button {
+    min-height: 42px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 9px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.agent-refresh-button:hover,
+.agent-primary-button:hover {
+    background-color: #1d4ed8;
+}
+
+.agent-primary-button:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+}
+
+.agent-secondary-button {
+    min-height: 40px;
+    padding: 0 14px;
+    margin-right: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #374151;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.agent-summary-card {
+    width: 240px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+.agent-summary-card span {
+    display: block;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.agent-summary-card strong {
+    display: block;
+    margin-top: 7px;
+    color: #111827;
+    font-size: 28px;
+}
+
+.agent-ticket-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.agent-ticket-card,
+.agent-table-card {
+    padding: 22px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
+    box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+}
+
+.agent-ticket-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.agent-ticket-card-header h2 {
+    margin: 7px 0 0;
+    color: #111827;
+    font-size: 20px;
+}
+
+.agent-reference {
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.agent-description {
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.agent-ticket-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 16px 0;
+    margin: 16px 0;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.agent-ticket-details span {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.agent-ticket-details strong {
+    display: block;
+    margin-top: 4px;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.agent-request-area textarea {
+    width: 100%;
+    min-height: 88px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    resize: vertical;
+}
+
+.agent-ticket-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.agent-priority,
+.agent-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.agent-priority.critical {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.agent-priority.high {
+    background-color: #ffedd5;
+    color: #9a3412;
+}
+
+.agent-priority.medium {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.agent-priority.low {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.agent-status.open {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.agent-status.progress {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.agent-status.pending {
+    background-color: #ede9fe;
+    color: #6d28d9;
+}
+
+.agent-status.resolved {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.agent-status.closed {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.agent-table-card {
+    overflow-x: auto;
+}
+
+.agent-ticket-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.agent-ticket-table th,
+.agent-ticket-table td {
+    padding: 13px 11px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+.agent-ticket-table th {
+    color: #4b5563;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.agent-history-filters {
+    display: grid;
+    grid-template-columns:
+        minmax(260px, 1fr)
+        minmax(190px, 240px)
+        auto;
+    gap: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+.agent-history-filters input,
+.agent-history-filters select {
+    min-height: 46px;
+    padding: 0 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font: inherit;
+}
+
+.agent-alert {
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    border-radius: 9px;
+    font-weight: 600;
+}
+
+.agent-success {
+    border: 1px solid #86efac;
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.agent-error {
+    border: 1px solid #fca5a5;
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+@media (max-width: 1000px) {
+    .agent-ticket-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .agent-ticket-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .agent-history-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .agent-ticket-details {
+        grid-template-columns: 1fr;
+    }
+}

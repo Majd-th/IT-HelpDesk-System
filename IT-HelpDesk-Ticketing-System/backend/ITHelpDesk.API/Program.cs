@@ -104,11 +104,20 @@ builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<
     ITicketAttachmentRepository,
     TicketAttachmentRepository>();
-
+builder.Services.AddScoped<
+    ITicketAssignmentRepository,
+    TicketAssignmentRepository>();
 
 builder.Services.AddScoped<
     ITicketAttachmentService,
     TicketAttachmentService>();
+builder.Services.AddScoped<
+ITicketAssignmentRepository,
+TicketAssignmentRepository>();
+
+builder.Services.AddScoped<
+    ITicketAssignmentService,
+    TicketAssignmentService>();
 
 var app = builder.Build();
 

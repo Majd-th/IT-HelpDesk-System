@@ -454,6 +454,11 @@ namespace ITHelpDesk.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<int>("AssignedByUserId")
                         .HasColumnType("int");
 
@@ -463,8 +468,26 @@ namespace ITHelpDesk.API.Migrations
                     b.Property<int>("AssignedToUserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AssignmentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReviewedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UnassignedDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -731,7 +754,7 @@ namespace ITHelpDesk.API.Migrations
                         .IsRequired();
 
                     b.HasOne("ITHelpDesk.API.Models.Ticket", "Ticket")
-                        .WithMany()
+                        .WithMany("AssignmentHistory")
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -800,6 +823,8 @@ namespace ITHelpDesk.API.Migrations
             modelBuilder.Entity("ITHelpDesk.API.Models.Ticket", b =>
                 {
                     b.Navigation("ActivityLogs");
+
+                    b.Navigation("AssignmentHistory");
 
                     b.Navigation("Attachments");
                 });

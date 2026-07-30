@@ -24,23 +24,70 @@ public class TicketAttachmentService : ITicketAttachmentService
         int userId)
     {
         if (file == null || file.Length == 0)
-            throw new Exception("No file uploaded.");
+        {
+            throw new ArgumentException(
+                "No file was uploaded."
+            );
+        }
 
-        var uploadsFolder = Path.Combine(
-            _environment.WebRootPath,
-            "attachments");
+        const long maximumFileSize =
+            10 * 1024 * 1024;
 
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
+        if (file.Length > maximumFileSize)
+        {
+            throw new ArgumentException(
+                "The maximum attachment size is 10 MB."
+            );
+        }
 
-        var uniqueFileName =
-            Guid.NewGuid() +
-            Path.GetExtension(file.FileName);
+        string[] allowedExtensions =
+        {
+        ".pdf",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".doc",
+        ".docx",
+        ".txt"
+    };
 
-        var filePath =
-            Path.Combine(uploadsFolder, uniqueFileName);
+        string extension =
+            Path.GetExtension(file.FileName)
+                .ToLowerInvariant();
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        if (!allowedExtensions.Contains(extension))
+        {
+            throw new ArgumentException(
+                "This file type is not allowed."
+            );
+        }
+
+        string webRootPath =
+            _environment.WebRootPath ??
+            Path.Combine(
+                _environment.ContentRootPath,
+                "wwwroot"
+            );
+
+        string uploadsFolder = Path.Combine(
+            webRootPath,
+            "attachments"
+        );
+
+        Directory.CreateDirectory(uploadsFolder);
+
+        string uniqueFileName =
+            $"{Guid.NewGuid()}{extension}";
+
+        string filePath = Path.Combine(
+            uploadsFolder,
+            uniqueFileName
+        );
+
+        await using (
+            var stream = new FileStream(
+                filePath,
+                FileMode.Create))
         {
             await file.CopyToAsync(stream);
         }
@@ -49,10 +96,16 @@ public class TicketAttachmentService : ITicketAttachmentService
         {
             TicketId = ticketId,
             UserId = userId,
-            FileName = file.FileName,
+            FileName = Path.GetFileName(
+                file.FileName),
             FilePath = uniqueFileName,
             FileSize = file.Length,
-            ContentType = file.ContentType
+            ContentType =
+                string.IsNullOrWhiteSpace(
+                    file.ContentType)
+                    ? "application/octet-stream"
+                    : file.ContentType,
+            UploadedDate = DateTime.UtcNow
         };
 
         await _repository.AddAsync(attachment);
@@ -68,7 +121,8 @@ public class TicketAttachmentService : ITicketAttachmentService
             Id = a.Id,
             FileName = a.FileName,
             FileSize = a.FileSize,
-            UploadedDate = a.UploadedDate
+            UploadedDate = a.UploadedDate,
+            UserId = a.UserId
         }).ToList();
     }
 
@@ -77,50 +131,91 @@ public class TicketAttachmentService : ITicketAttachmentService
         return await GetAllAsync(ticketId);
     }
 
-    public async Task<(byte[] File, string ContentType, string FileName)>
-        DownloadAsync(int attachmentId)
+    public async Task<(
+    byte[] File,
+    string ContentType,
+    string FileName
+)> DownloadAsync(int attachmentId)
     {
         var attachment =
             await _repository.GetByIdAsync(attachmentId);
 
         if (attachment == null)
-            throw new Exception("Attachment not found.");
+        {
+            throw new FileNotFoundException(
+                "Attachment record was not found."
+            );
+        }
 
         var fullPath = Path.Combine(
             _environment.WebRootPath,
             "attachments",
-            attachment.FilePath);
+            attachment.FilePath
+        );
+
+        if (!File.Exists(fullPath))
+        {
+            throw new FileNotFoundException(
+                "The attachment file does not exist on the server."
+            );
+        }
 
         var bytes =
             await File.ReadAllBytesAsync(fullPath);
 
+        var contentType =
+            string.IsNullOrWhiteSpace(attachment.ContentType)
+                ? "application/octet-stream"
+                : attachment.ContentType;
+
         return (
             bytes,
-            attachment.ContentType,
+            contentType,
             attachment.FileName
         );
     }
-
     public async Task<bool> DeleteAsync(
         int attachmentId,
-        int userId)
+        int userId,
+        string role)
     {
         var attachment =
-            await _repository.GetByIdAsync(attachmentId);
+            await _repository.GetByIdAsync(
+                attachmentId);
 
         if (attachment == null)
             return false;
 
-        if (attachment.UserId != userId)
+        bool isUploader =
+            attachment.UserId == userId;
+
+        bool isAdmin =
+            string.Equals(
+                role,
+                "Admin",
+                StringComparison.OrdinalIgnoreCase
+            );
+
+        if (!isUploader && !isAdmin)
             return false;
 
-        var fullPath = Path.Combine(
-            _environment.WebRootPath,
+        string webRootPath =
+            _environment.WebRootPath ??
+            Path.Combine(
+                _environment.ContentRootPath,
+                "wwwroot"
+            );
+
+        string fullPath = Path.Combine(
+            webRootPath,
             "attachments",
-            attachment.FilePath);
+            attachment.FilePath
+        );
 
         if (File.Exists(fullPath))
+        {
             File.Delete(fullPath);
+        }
 
         await _repository.DeleteAsync(attachment);
 

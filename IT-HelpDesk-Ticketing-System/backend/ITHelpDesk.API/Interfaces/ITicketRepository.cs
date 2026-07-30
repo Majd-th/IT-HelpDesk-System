@@ -1,5 +1,5 @@
-using ITHelpDesk.API.Models;
 using ITHelpDesk.API.DTOs;
+using ITHelpDesk.API.Models;
 
 namespace ITHelpDesk.API.Interfaces;
 
@@ -16,6 +16,7 @@ public interface ITicketRepository
     Task DeleteAsync(Ticket ticket);
 
     Task SaveChangesAsync();
-    Task<List<ActivityLog>> GetActivityLogsAsync(int ticketId);
-    Task<List<Ticket>> FilterTicketsAsync(TicketFilterDto filter);
+
+    Task<List<Ticket>> FilterTicketsAsync(
+        TicketFilterDto filter);
 }
