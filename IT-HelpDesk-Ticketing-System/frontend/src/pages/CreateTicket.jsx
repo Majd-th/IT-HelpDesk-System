@@ -1,36 +1,51 @@
-import { useNavigate } from "react-router-dom";
+import {
+    useNavigate
+} from "react-router-dom";
 
-import TicketForm from "../components/TicketForm";
+import TicketForm from
+    "../components/TicketForm";
 
-import { createTicket } from "../services/ticketService";
-import Layout from "../components/Layout";
+import Layout from
+    "../components/Layout";
 
+import {
+    createTicket
+} from "../services/ticketService";
 
 function CreateTicket() {
-
     const navigate = useNavigate();
 
     async function create(ticket) {
+        try {
+            await createTicket(ticket);
 
-        await createTicket(ticket);
+            alert(
+                "Ticket created successfully."
+            );
 
-        alert("Ticket Created");
+            navigate("/tickets");
+        } catch (error) {
+            console.error(
+                "Ticket creation failed:",
+                error
+            );
 
-        navigate("/tickets");
-
+            alert(
+                error.response?.data?.message ||
+                "Could not create the ticket."
+            );
+        }
     }
 
     return (
-    <Layout>
-        <h1>Create Ticket</h1>
+        <Layout>
+            <h1>Create Ticket</h1>
 
-        <TicketForm
-            onSubmit={create}
-        />
-    </Layout>
-);
-
-
+            <TicketForm
+                onSubmit={create}
+            />
+        </Layout>
+    );
 }
 
 export default CreateTicket;

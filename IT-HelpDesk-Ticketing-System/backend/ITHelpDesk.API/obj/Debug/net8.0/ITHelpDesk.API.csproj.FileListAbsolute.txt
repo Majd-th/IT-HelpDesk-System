@@ -1,5 +1,6 @@
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\bin\Debug\net8.0\appsettings.json
+C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\bin\Debug\net8.0\ITHelpDesk.API.staticwebassets.runtime.json
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\bin\Debug\net8.0\ITHelpDesk.API.staticwebassets.endpoints.json
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\bin\Debug\net8.0\ITHelpDesk.API.exe
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\bin\Debug\net8.0\ITHelpDesk.API.deps.json
@@ -147,4 +148,3 @@ C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\obj\Debug\net8.0\ITHelpDesk.API.pdb
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\obj\Debug\net8.0\ITHelpDesk.API.genruntimeconfig.cache
 C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\obj\Debug\net8.0\ref\ITHelpDesk.API.dll
-C:\Users\ghane\Downloads\IT-HelpDesk-System\IT-HelpDesk-Ticketing-System\backend\ITHelpDesk.API\bin\Debug\net8.0\ITHelpDesk.API.staticwebassets.runtime.json

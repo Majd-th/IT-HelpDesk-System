@@ -1,10 +1,21 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace ITHelpDesk.API.DTOs;
+
 public class CreateTicketRequestDto
 {
-    public string Title { get; set; } = string.Empty;
+    [Required]
+    [MaxLength(150)]
+    public string Title { get; set; }
+        = string.Empty;
 
-    public string Description { get; set; } = string.Empty;
+    [Required]
+    public string Description { get; set; }
+        = string.Empty;
 
+    [Required]
     public int CategoryId { get; set; }
 
+    [Required]
     public int PriorityId { get; set; }
 }

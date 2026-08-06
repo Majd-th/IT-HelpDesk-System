@@ -1,51 +1,81 @@
 import { Link } from "react-router-dom";
 
-function TicketList({ tickets, onDelete }) {
-    const role = localStorage.getItem("role");
-    const currentUserId = Number(localStorage.getItem("userId"));
+function TicketList({
+    tickets,
+    onDelete
+}) {
+    const role =
+        localStorage.getItem("role");
 
-    function statusClass(status) {
-    switch (status?.toLowerCase()) {
-        case "open":
-            return "status status-open";
+    const currentUserId =
+        Number(
+            localStorage.getItem("userId")
+        );
 
-        case "in progress":
-            return "status status-in-progress";
+    function getStatusClass(status) {
+        const statusClasses = {
+            "Pending Review":
+                "status-pending-review",
 
-        case "pending":
-            return "status status-pending";
+            "Open":
+                "status-open",
 
-        case "resolved":
-            return "status status-resolved";
+            "Assigned":
+                "status-assigned",
 
-        case "closed":
-            return "status status-closed";
+            "In Progress":
+                "status-in-progress",
 
-        default:
-            return "status";
+            "Escalated":
+                "status-escalated",
+
+            "Rejected":
+                "status-rejected",
+
+            "Canceled":
+                "status-canceled",
+
+            "Resolved":
+                "status-resolved",
+
+            "Closed":
+                "status-closed",
+
+            "Reopened":
+                "status-reopened"
+        };
+
+        return (
+            statusClasses[status] ||
+            "status-default"
+        );
     }
-}
 
-    function priorityClass(priority) {
-        switch (priority) {
-            case "Critical":
-                return "priority-critical";
+    function getPriorityClass(priority) {
+        const priorityClasses = {
+            Critical:
+                "priority-critical",
 
-            case "High":
-                return "priority-high";
+            High:
+                "priority-high",
 
-            case "Medium":
-                return "priority-medium";
+            Medium:
+                "priority-medium",
 
-            case "Low":
-                return "priority-low";
+            Low:
+                "priority-low"
+        };
 
-            default:
-                return "";
-        }
+        return (
+            priorityClasses[priority] ||
+            ""
+        );
     }
 
-    if (!tickets || tickets.length === 0) {
+    if (
+        !tickets ||
+        tickets.length === 0
+    ) {
         return (
             <div className="ticket-card">
                 <p>No tickets found.</p>
@@ -69,71 +99,125 @@ function TicketList({ tickets, onDelete }) {
                 </thead>
 
                 <tbody>
-                    {tickets.map((ticket) => {
+                    {tickets.map(ticket => {
                         const isOwner =
-                            ticket.createdByUserId === currentUserId;
-const isOpen =
-    ticket.status?.toLowerCase() === "open";
+                            Number(
+                                ticket.createdByUserId
+                            ) === currentUserId;
 
-                      const canEdit =
-    role === "Admin" ||
-    role === "IT Support Agent" ||
-    (
-        role === "Employee" &&
-        isOwner &&
-        isOpen
-    );
+                        const isPendingReview =
+                            ticket.status ===
+                            "Pending Review";
 
-const canDelete =
-    role === "Admin" ||
-    (
-        role === "Employee" &&
-        isOwner &&
-        isOpen
-    );
+                        /*
+                         * Employee:
+                         * Can edit only their own
+                         * Pending Review ticket.
+                         *
+                         * Manager/Admin:
+                         * Can edit Pending Review tickets.
+                         *
+                         * Agent:
+                         * Does not use the normal
+                         * edit page.
+                         */
+                        const canEdit =
+                            (
+                                role === "Employee"
+                                &&
+                                isOwner
+                                &&
+                                isPendingReview
+                            )
+                            ||
+                            (
+                                (
+                                    role === "Manager"
+                                    ||
+                                    role === "Admin"
+                                )
+                                &&
+                                isPendingReview
+                            );
+
+                        /*
+                         * Only Admin permanently deletes.
+                         */
+                        const canDelete =
+                            role === "Admin";
 
                         return (
                             <tr key={ticket.id}>
-                                <td>{ticket.referenceNumber}</td>
+                                <td>
+                                    {
+                                        ticket.referenceNumber
+                                    }
+                                </td>
 
-                                <td>{ticket.title}</td>
+                                <td>
+                                    {ticket.title}
+                                </td>
 
-                                <td>{ticket.category}</td>
+                                <td>
+                                    {ticket.category}
+                                </td>
 
                                 <td>
                                     <span
-                                        className={priorityClass(
+                                        className={
+                                            getPriorityClass(
+                                                ticket.priority
+                                            )
+                                        }
+                                    >
+                                        {
                                             ticket.priority
-                                        )}
-                                    >
-                                        {ticket.priority}
+                                        }
                                     </span>
                                 </td>
 
                                 <td>
                                     <span
-                                        className={statusClass(
-                                            ticket.status
-                                        )}
+                                        className={
+                                            `status-badge ${getStatusClass(
+                                                ticket.status
+                                            )}`
+                                        }
                                     >
-                                        {ticket.status}
+                                        {
+                                            ticket.status
+                                        }
                                     </span>
                                 </td>
 
-                                <td>{ticket.createdBy}</td>
+                                <td>
+                                    {ticket.createdBy}
+                                </td>
 
                                 <td>
-                                    <Link to={`/tickets/${ticket.id}`}>
-                                        <button className="action-btn view-btn">
+                                    <Link
+                                        to={
+                                            `/tickets/${ticket.id}`
+                                        }
+                                    >
+                                        <button
+                                            type="button"
+                                            className="action-btn view-btn"
+                                        >
                                             View
                                         </button>
                                     </Link>
 
                                     {canEdit && (
                                         <Link
-                                            to={`/tickets/edit/${ticket.id}`}
+                                            to={
+                                                `/tickets/edit/${ticket.id}`
+                                            }
                                         >
-                                            <button className="action-btn edit-btn">
+                                            <button
+                                                type="button"
+                                                className="action-btn edit-btn"
+                                            >
                                                 Edit
                                             </button>
                                         </Link>
@@ -141,9 +225,12 @@ const canDelete =
 
                                     {canDelete && (
                                         <button
+                                            type="button"
                                             className="action-btn delete-btn"
                                             onClick={() =>
-                                                onDelete(ticket.id)
+                                                onDelete(
+                                                    ticket.id
+                                                )
                                             }
                                         >
                                             Delete

@@ -169,16 +169,7 @@ function AgentMyTickets() {
                                                 </button>
                                             </Link>
 
-                                            <Link
-                                                to={`/tickets/edit/${ticket.id}`}
-                                            >
-                                                <button
-                                                    type="button"
-                                                    className="agent-primary-button"
-                                                >
-                                                    Update
-                                                </button>
-                                            </Link>
+                                           
                                         </td>
                                     </tr>
                                 ))}

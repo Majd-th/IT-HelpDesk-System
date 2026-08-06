@@ -408,4 +408,26 @@
     .assignment-history-search {
         flex-direction: column;
     }
+    .assignment-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.publish-button {
+    padding: 10px 16px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #16a34a;
+    color: white;
+
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.publish-button:hover {
+    background-color: #15803d;
+}
 }

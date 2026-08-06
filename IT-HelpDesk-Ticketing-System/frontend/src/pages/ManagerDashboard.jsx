@@ -1,93 +1,56 @@
-import { useEffect,useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
 
-import Layout from "../components/Layout";
+import Layout from
+    "../components/Layout";
 
-import DashboardCard from "../components/DashboardCard";
+import TicketStatusCards from
+    "../components/TicketStatusCards";
 
-import DashboardChart from "../components/DashboardChart";
+import DashboardChart from
+    "../components/DashboardChart";
 
-import RecentTickets from "../components/RecentTickets";
+import RecentTickets from
+    "../components/RecentTickets";
 
-import { getTickets } from "../services/ticketService";
+import {
+    getTickets
+} from "../services/ticketService";
 
 import "../styles/Dashboard.css";
 
-function ManagerDashboard(){
+function ManagerDashboard() {
+    const [tickets, setTickets] =
+        useState([]);
 
-    const [tickets,setTickets]=useState([]);
-
-    useEffect(()=>{
-
+    useEffect(() => {
         load();
+    }, []);
 
-    },[]);
+    async function load() {
+        const data =
+            await getTickets();
 
-    async function load(){
-
-        setTickets(await getTickets());
-
+        setTickets(data);
     }
 
-    return(
-
+    return (
         <Layout>
-
             <div className="dashboard-container">
+                <TicketStatusCards
+                    tickets={tickets}
+                />
 
-                <div className="dashboard-cards">
+                <DashboardChart />
 
-                    <DashboardCard
-
-                        title="Open"
-
-                        value={tickets.filter(t=>t.status==="Open").length}
-
-                        color="#3498db"
-
-                    />
-
-                    <DashboardCard
-
-                        title="Pending"
-
-                        value={tickets.filter(t=>t.status==="Pending").length}
-
-                        color="#f39c12"
-
-                    />
-
-                    <DashboardCard
-
-                        title="Resolved"
-
-                        value={tickets.filter(t=>t.status==="Resolved").length}
-
-                        color="#2ecc71"
-
-                    />
-
-                    <DashboardCard
-
-                        title="Critical"
-
-                        value={tickets.filter(t=>t.priority==="Critical").length}
-
-                        color="#e74c3c"
-
-                    />
-
-                </div>
-
-                <DashboardChart/>
-
-                <RecentTickets tickets={tickets}/>
-
+                <RecentTickets
+                    tickets={tickets}
+                />
             </div>
-
         </Layout>
-
     );
-
 }
 
 export default ManagerDashboard;

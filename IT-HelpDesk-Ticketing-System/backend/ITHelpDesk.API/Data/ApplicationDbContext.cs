@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Status> Statuses { get; set; }
 
     public DbSet<Ticket> Tickets { get; set; }
+    public DbSet<TicketWorkLog> TicketWorkLogs { get; set; }
     public DbSet<TicketComment> TicketComments { get; set; }
     public DbSet<TicketAttachment> TicketAttachments { get; set; }
     public DbSet<Notification> Notifications { get; set; }
@@ -112,17 +113,113 @@ new Role
             new Priority { Id = 4, Name = "Critical", DisplayOrder = 4 }
         );
         modelBuilder.Entity<Status>().HasData(
-            new Status { Id = 1, Name = "Open", DisplayOrder = 1 },
-            new Status { Id = 2, Name = "In Progress", DisplayOrder = 2 },
-            new Status { Id = 3, Name = "Pending", DisplayOrder = 3 },
-            new Status { Id = 4, Name = "Resolved", DisplayOrder = 4 },
-            new Status { Id = 5, Name = "Closed", DisplayOrder = 5 }
-        );
+       new Status
+       {
+           Id = 1,
+           Name = "Open",
+           DisplayOrder = 1
+       },
+       new Status
+       {
+           Id = 2,
+           Name = "In Progress",
+           DisplayOrder = 4
+       },
+       new Status
+       {
+           Id = 3,
+           Name = "Pending Review",
+           DisplayOrder = 2
+       },
+       new Status
+       {
+           Id = 4,
+           Name = "Resolved",
+           DisplayOrder = 8
+       },
+       new Status
+       {
+           Id = 5,
+           Name = "Closed",
+           DisplayOrder = 9
+       },
+       new Status
+       {
+           Id = 6,
+           Name = "Assigned",
+           DisplayOrder = 3
+       },
+       new Status
+       {
+           Id = 7,
+           Name = "Escalated",
+           DisplayOrder = 5
+       },
+       new Status
+       {
+           Id = 8,
+           Name = "Rejected",
+           DisplayOrder = 6
+       },
+       new Status
+       {
+           Id = 9,
+           Name = "Canceled",
+           DisplayOrder = 7
+       },
+       new Status
+       {
+           Id = 10,
+           Name = "Reopened",
+           DisplayOrder = 10
+       }
+   );
 
         modelBuilder.Entity<TicketAssignment>()
     .HasOne(a => a.Ticket)
     .WithMany(t => t.AssignmentHistory)
     .HasForeignKey(a => a.TicketId)
     .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TicketComment>()
+        .HasOne(comment => comment.Ticket)
+        .WithMany(ticket => ticket.Comments)
+        .HasForeignKey(comment => comment.TicketId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TicketComment>()
+            .HasOne(comment => comment.User)
+            .WithMany(user => user.TicketComments)
+            .HasForeignKey(comment => comment.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<TicketComment>()
+            .HasOne(comment => comment.ParentComment)
+            .WithMany(comment => comment.Replies)
+            .HasForeignKey(comment => comment.ParentCommentId)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<TicketWorkLog>()
+.HasOne(workLog => workLog.Ticket)
+.WithMany(ticket => ticket.WorkLogs)
+.HasForeignKey(workLog => workLog.TicketId)
+.OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TicketWorkLog>()
+            .HasOne(workLog => workLog.Agent)
+            .WithMany(user => user.TicketWorkLogs)
+            .HasForeignKey(workLog => workLog.AgentId)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<ActivityLog>()
+.HasOne(log => log.Ticket)
+.WithMany(ticket => ticket.ActivityLogs)
+.HasForeignKey(log => log.TicketId)
+.OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ActivityLog>()
+            .HasOne(log => log.User)
+            .WithMany(user => user.ActivityLogs)
+            .HasForeignKey(log => log.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
+
 }

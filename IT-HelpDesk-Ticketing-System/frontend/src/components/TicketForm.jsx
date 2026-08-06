@@ -1,171 +1,247 @@
-import { useState, useEffect } from "react";
 import {
+    useEffect,
+    useState
+} from "react";
+
+import {
+    
     getCategories,
-    getPriorities,
-    getStatuses
+    getPriorities
 } from "../services/lookupService";
 
 function TicketForm({
     initialValues,
     onSubmit
 }) {
+    const [title, setTitle] =
+        useState("");
 
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [categoryId, setCategoryId] = useState("");
-    const [priorityId, setPriorityId] = useState("");
-    const [statusId, setStatusId] = useState("");
-    const [solution, setSolution] = useState("");
+    const [description, setDescription] =
+        useState("");
 
-    const [categories, setCategories] = useState([]);
-    const [priorities, setPriorities] = useState([]);
-    const [statuses, setStatuses] = useState([]);
+    const [categoryId, setCategoryId] =
+        useState("");
+
+    const [priorityId, setPriorityId] =
+        useState("");
+
+    const [categories, setCategories] =
+        useState([]);
+
+    const [priorities, setPriorities] =
+        useState([]);
+
+    const [submitting, setSubmitting] =
+        useState(false);
 
     useEffect(() => {
         loadLookups();
     }, []);
 
     useEffect(() => {
+        if (!initialValues) {
+            return;
+        }
 
-        if (!initialValues) return;
+        setTitle(
+            initialValues.title || ""
+        );
 
-        setTitle(initialValues.title || "");
-        setDescription(initialValues.description || "");
-        setCategoryId(initialValues.categoryId || "");
-        setPriorityId(initialValues.priorityId || "");
-        setStatusId(initialValues.statusId || "");
-        setSolution(initialValues.solution || "");
+        setDescription(
+            initialValues.description || ""
+        );
 
+        setCategoryId(
+            initialValues.categoryId || ""
+        );
+
+        setPriorityId(
+            initialValues.priorityId || ""
+        );
     }, [initialValues]);
 
     async function loadLookups() {
         try {
-            const categoriesData = await getCategories();
-            const prioritiesData = await getPriorities();
-            const statusesData = await getStatuses();
+            const [
+                categoriesData,
+                prioritiesData
+            ] = await Promise.all([
+                getCategories(),
+                getPriorities()
+            ]);
 
             setCategories(categoriesData);
             setPriorities(prioritiesData);
-            setStatuses(statusesData);
+        } catch (error) {
+            console.error(
+                "Lookup error:",
+                error
+            );
 
-            console.log(categoriesData);
-            console.log(prioritiesData);
-            console.log(statusesData);
-
-        } catch (err) {
-            console.error("Lookup error:", err);
+            alert(
+                "Could not load categories or priorities."
+            );
         }
     }
 
-    function submit(e) {
+    async function submit(event) {
+        event.preventDefault();
 
-        e.preventDefault();
+        if (!title.trim()) {
+            alert("Title is required.");
+            return;
+        }
 
-        onSubmit({
-            title,
-            description,
-            categoryId: Number(categoryId),
-            priorityId: Number(priorityId),
-            statusId: Number(statusId),
-            solution
-        });
+        if (!description.trim()) {
+            alert("Description is required.");
+            return;
+        }
+
+        if (!categoryId) {
+            alert("Choose a category.");
+            return;
+        }
+
+        if (!priorityId) {
+            alert("Choose a priority.");
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+
+            await onSubmit({
+                title: title.trim(),
+
+                description:
+                    description.trim(),
+
+                categoryId:
+                    Number(categoryId),
+
+                priorityId:
+                    Number(priorityId)
+            });
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     return (
-        <form onSubmit={submit} className="page-card">
-
+        <form
+            onSubmit={submit}
+            className="page-card"
+        >
             <div className="form-grid">
-
                 <div className="form-group">
-                    <label>Title</label>
+                    <label htmlFor="title">
+                        Title
+                    </label>
 
                     <input
+                        id="title"
+                        type="text"
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        onChange={(event) =>
+                            setTitle(
+                                event.target.value
+                            )
+                        }
+                        required
                     />
                 </div>
 
                 <div className="form-group">
-                    <label>Category</label>
+                    <label htmlFor="category">
+                        Category
+                    </label>
 
                     <select
+                        id="category"
                         value={categoryId}
-                        onChange={(e) => setCategoryId(e.target.value)}
+                        onChange={(event) =>
+                            setCategoryId(
+                                event.target.value
+                            )
+                        }
+                        required
                     >
                         <option value="">
                             Choose Category
                         </option>
 
-                        {categories.map(c => (
-                            <option key={c.id} value={c.id}>
-                                {c.name}
-                            </option>
-                        ))}
+                        {categories.map(
+                            category => (
+                                <option
+                                    key={category.id}
+                                    value={category.id}
+                                >
+                                    {category.name}
+                                </option>
+                            )
+                        )}
                     </select>
                 </div>
 
                 <div className="form-group">
-                    <label>Priority</label>
+                    <label htmlFor="priority">
+                        Priority
+                    </label>
 
                     <select
+                        id="priority"
                         value={priorityId}
-                        onChange={(e) => setPriorityId(e.target.value)}
+                        onChange={(event) =>
+                            setPriorityId(
+                                event.target.value
+                            )
+                        }
+                        required
                     >
                         <option value="">
                             Choose Priority
                         </option>
 
-                        {priorities.map(p => (
-                            <option key={p.id} value={p.id}>
-                                {p.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="form-group">
-                    <label>Status</label>
-
-                    <select
-                        value={statusId}
-                        onChange={(e) => setStatusId(e.target.value)}
-                    >
-                        <option value="">
-                            Choose Status
-                        </option>
-
-                        {statuses.map(s => (
-                            <option key={s.id} value={s.id}>
-                                {s.name}
-                            </option>
-                        ))}
+                        {priorities.map(
+                            priority => (
+                                <option
+                                    key={priority.id}
+                                    value={priority.id}
+                                >
+                                    {priority.name}
+                                </option>
+                            )
+                        )}
                     </select>
                 </div>
 
                 <div className="form-group full-width">
-                    <label>Description</label>
+                    <label htmlFor="description">
+                        Description
+                    </label>
 
                     <textarea
+                        id="description"
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={(event) =>
+                            setDescription(
+                                event.target.value
+                            )
+                        }
+                        required
                     />
                 </div>
-
-                <div className="form-group full-width">
-                    <label>Solution</label>
-
-                    <textarea
-                        value={solution}
-                        onChange={(e) => setSolution(e.target.value)}
-                    />
-                </div>
-
             </div>
 
-            <button className="save-btn">
-                Save Ticket
+            <button
+                type="submit"
+                className="save-btn"
+                disabled={submitting}
+            >
+                {submitting
+                    ? "Saving..."
+                    : "Save Ticket"}
             </button>
-
         </form>
     );
 }

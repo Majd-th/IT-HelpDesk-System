@@ -48,4 +48,13 @@ public class Ticket
     = new List<TicketAttachment>();
     public ICollection<TicketAssignment> AssignmentHistory { get; set; }
     = new List<TicketAssignment>();
+
+
+
+
+    public ICollection<TicketComment> Comments { get; set; }
+        = new List<TicketComment>();
+
+    public ICollection<TicketWorkLog> WorkLogs { get; set; }
+        = new List<TicketWorkLog>();
 }

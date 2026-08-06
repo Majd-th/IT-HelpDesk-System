@@ -146,46 +146,51 @@ public class TicketAssignmentRepository
     public async Task<List<Ticket>>
         GetAvailableTicketsAsync(
             int? agentId = null)
+
     {
-        var query = _context.Tickets
-            .Include(t => t.Category)
-            .Include(t => t.Priority)
-            .Include(t => t.Status)
-            .Include(t => t.CreatedByUser)
-            .Where(t =>
-                t.AssignedToUserId == null &&
-                t.Status.Name == "Open");
+        var query =
+            _context.Tickets
+                .Include(ticket =>
+                    ticket.Category)
+                .Include(ticket =>
+                    ticket.Priority)
+                .Include(ticket =>
+                    ticket.Status)
+                .Include(ticket =>
+                    ticket.CreatedByUser)
+                .Where(ticket =>
+                    ticket.AssignedToUserId ==
+                        null);
 
         /*
-         * The agentId parameter is kept for later use,
-         * when we mark tickets already requested by
-         * the logged-in agent.
+         * The Manager/Admin controller passes zero.
+         *
+         * Manager sees:
+         * - Pending Review
+         * - Open
+         *
+         * Agent sees:
+         * - Open only
          */
-        return await query
-            .OrderByDescending(t =>
-                t.Priority.DisplayOrder)
-            .ThenBy(t => t.CreatedDate)
-            .ToListAsync();
-    }
+        if (agentId <= 0)
+        {
+            query = query.Where(ticket =>
+                ticket.StatusId ==
+                    TicketStatusIds.PendingReview
+                ||
+                ticket.StatusId ==
+                    TicketStatusIds.Open);
+        }
+        else
+        {
+            query = query.Where(ticket =>
+                ticket.StatusId ==
+                    TicketStatusIds.Open);
+        }
 
-    public async Task<List<Ticket>>
-        GetAgentTicketsAsync(int agentId)
-    {
-        return await _context.Tickets
-            .Include(t => t.Category)
-            .Include(t => t.Priority)
-            .Include(t => t.Status)
-            .Include(t => t.CreatedByUser)
-            .Where(t =>
-                t.AssignedToUserId == agentId &&
-                (
-                    t.Status.Name == "Open" ||
-                    t.Status.Name == "In Progress" ||
-                    t.Status.Name == "Pending"
-                ))
-            .OrderByDescending(t =>
-                t.Priority.DisplayOrder)
-            .ThenBy(t => t.CreatedDate)
+        return await query
+            .OrderByDescending(ticket =>
+                ticket.CreatedDate)
             .ToListAsync();
     }
 
@@ -238,4 +243,27 @@ public class TicketAssignmentRepository
     {
         await _context.SaveChangesAsync();
     }
+    public async Task<List<Ticket>>
+    GetAgentTicketsAsync(int agentId)
+    {
+        return await _context.Tickets
+            .Include(ticket => ticket.Category)
+            .Include(ticket => ticket.Priority)
+            .Include(ticket => ticket.Status)
+            .Include(ticket => ticket.CreatedByUser)
+            .Include(ticket => ticket.AssignedToUser)
+            .Where(ticket =>
+                ticket.AssignedToUserId == agentId
+                &&
+                ticket.StatusId != TicketStatusIds.Resolved
+                &&
+                ticket.StatusId != TicketStatusIds.Closed
+                &&
+                ticket.StatusId != TicketStatusIds.Canceled
+            )
+            .OrderByDescending(ticket =>
+                ticket.CreatedDate)
+            .ToListAsync();
+    }
+
 }

@@ -19,6 +19,11 @@ public class TicketAssignmentService
         _assignmentRepository = assignmentRepository;
     }
 
+    // =====================================================
+    // MANAGER / ADMIN: DIRECTLY ASSIGN A TICKET
+    // Pending Review/Open -> Assigned
+    // =====================================================
+
     public async Task<(bool Success, string Message)>
         AssignTicketAsync(
             int ticketId,
@@ -45,17 +50,25 @@ public class TicketAssignmentService
             );
         }
 
-        if (IsFinished(ticket))
+        bool canBeAssigned =
+            ticket.StatusId ==
+                TicketStatusIds.PendingReview
+            ||
+            ticket.StatusId ==
+                TicketStatusIds.Open;
+
+        if (!canBeAssigned)
         {
             return (
                 false,
-                "Resolved or closed tickets cannot be assigned."
+                "Only Pending Review or Open tickets can be assigned."
             );
         }
 
         var agent =
             await _assignmentRepository
-                .GetAgentByIdAsync(request.AgentId);
+                .GetAgentByIdAsync(
+                    request.AgentId);
 
         if (agent == null)
         {
@@ -67,9 +80,13 @@ public class TicketAssignmentService
 
         int activeTicketCount =
             await _assignmentRepository
-                .GetAgentActiveTicketCountAsync(agent.Id);
+                .GetAgentActiveTicketCountAsync(
+                    agent.Id);
 
-        if (activeTicketCount >= MaximumActiveTicketsPerAgent)
+        if (
+            activeTicketCount >=
+            MaximumActiveTicketsPerAgent
+        )
         {
             return (
                 false,
@@ -77,42 +94,55 @@ public class TicketAssignmentService
             );
         }
 
-        var assignment = new TicketAssignment
-        {
-            TicketId = ticket.Id,
+        var assignment =
+            new TicketAssignment
+            {
+                TicketId = ticket.Id,
 
-            AssignedToUserId = agent.Id,
+                AssignedToUserId =
+                    agent.Id,
 
-            AssignedByUserId = assignedByUserId,
+                AssignedByUserId =
+                    assignedByUserId,
 
-            AssignmentType =
-                AssignmentTypes.ManagerAssignment,
+                AssignmentType =
+                    AssignmentTypes
+                        .ManagerAssignment,
 
-            ApprovalStatus =
-                AssignmentApprovalStatuses.Approved,
+                ApprovalStatus =
+                    AssignmentApprovalStatuses
+                        .Approved,
 
-            Notes = NormalizeNotes(request.Notes),
+                Notes =
+                    NormalizeNotes(
+                        request.Notes),
 
-            AssignedDate = DateTime.UtcNow,
+                AssignedDate =
+                    DateTime.UtcNow,
 
-            ReviewedDate = DateTime.UtcNow,
+                ReviewedDate =
+                    DateTime.UtcNow,
 
-            IsActive = true
-        };
+                IsActive = true
+            };
 
-        ticket.AssignedToUserId = agent.Id;
+        ticket.AssignedToUserId =
+            agent.Id;
 
         /*
-         * A directly assigned ticket becomes In Progress.
-         * Your seeded status ID 2 is "In Progress".
+         * Assignment does not mean work has started.
+         * The assigned Agent must click Start Work.
          */
-        ticket.StatusId = 2;
+        ticket.StatusId =
+            TicketStatusIds.Assigned;
 
         await _assignmentRepository
-            .AddAssignmentAsync(assignment);
+            .AddAssignmentAsync(
+                assignment);
 
         await _assignmentRepository
-            .UpdateTicketAsync(ticket);
+            .UpdateTicketAsync(
+                ticket);
 
         await _assignmentRepository
             .SaveChangesAsync();
@@ -122,6 +152,11 @@ public class TicketAssignmentService
             $"Ticket assigned to {agent.FirstName} {agent.LastName}."
         );
     }
+
+    // =====================================================
+    // MANAGER / ADMIN: REASSIGN A TICKET
+    // Existing status -> Assigned for new Agent
+    // =====================================================
 
     public async Task<(bool Success, string Message)>
         ReassignTicketAsync(
@@ -141,17 +176,28 @@ public class TicketAssignmentService
             );
         }
 
+        if (
+            !ticket.AssignedToUserId.HasValue
+        )
+        {
+            return (
+                false,
+                "This ticket is not currently assigned. Use the normal assign operation instead."
+            );
+        }
+
         if (IsFinished(ticket))
         {
             return (
                 false,
-                "Resolved or closed tickets cannot be reassigned."
+                "Resolved, closed, or canceled tickets cannot be reassigned."
             );
         }
 
         var newAgent =
             await _assignmentRepository
-                .GetAgentByIdAsync(request.NewAgentId);
+                .GetAgentByIdAsync(
+                    request.NewAgentId);
 
         if (newAgent == null)
         {
@@ -161,7 +207,10 @@ public class TicketAssignmentService
             );
         }
 
-        if (ticket.AssignedToUserId == newAgent.Id)
+        if (
+            ticket.AssignedToUserId ==
+            newAgent.Id
+        )
         {
             return (
                 false,
@@ -174,7 +223,10 @@ public class TicketAssignmentService
                 .GetAgentActiveTicketCountAsync(
                     newAgent.Id);
 
-        if (activeTicketCount >= MaximumActiveTicketsPerAgent)
+        if (
+            activeTicketCount >=
+            MaximumActiveTicketsPerAgent
+        )
         {
             return (
                 false,
@@ -184,11 +236,14 @@ public class TicketAssignmentService
 
         var currentAssignment =
             await _assignmentRepository
-                .GetActiveAssignmentAsync(ticketId);
+                .GetActiveAssignmentAsync(
+                    ticketId);
 
         if (currentAssignment != null)
         {
-            currentAssignment.IsActive = false;
+            currentAssignment.IsActive =
+                false;
+
             currentAssignment.UnassignedDate =
                 DateTime.UtcNow;
 
@@ -197,41 +252,55 @@ public class TicketAssignmentService
                     currentAssignment);
         }
 
-        var newAssignment = new TicketAssignment
-        {
-            TicketId = ticket.Id,
+        var newAssignment =
+            new TicketAssignment
+            {
+                TicketId = ticket.Id,
 
-            AssignedToUserId = newAgent.Id,
+                AssignedToUserId =
+                    newAgent.Id,
 
-            AssignedByUserId = assignedByUserId,
+                AssignedByUserId =
+                    assignedByUserId,
 
-            AssignmentType =
-                AssignmentTypes.Reassignment,
+                AssignmentType =
+                    AssignmentTypes
+                        .Reassignment,
 
-            ApprovalStatus =
-                AssignmentApprovalStatuses.Approved,
+                ApprovalStatus =
+                    AssignmentApprovalStatuses
+                        .Approved,
 
-            Notes = NormalizeNotes(request.Notes),
+                Notes =
+                    NormalizeNotes(
+                        request.Notes),
 
-            AssignedDate = DateTime.UtcNow,
+                AssignedDate =
+                    DateTime.UtcNow,
 
-            ReviewedDate = DateTime.UtcNow,
+                ReviewedDate =
+                    DateTime.UtcNow,
 
-            IsActive = true
-        };
+                IsActive = true
+            };
 
-        ticket.AssignedToUserId = newAgent.Id;
+        ticket.AssignedToUserId =
+            newAgent.Id;
 
-        if (IsOpen(ticket))
-        {
-            ticket.StatusId = 2;
-        }
+        /*
+         * The new Agent must explicitly click
+         * Start Work after receiving the ticket.
+         */
+        ticket.StatusId =
+            TicketStatusIds.Assigned;
 
         await _assignmentRepository
-            .AddAssignmentAsync(newAssignment);
+            .AddAssignmentAsync(
+                newAssignment);
 
         await _assignmentRepository
-            .UpdateTicketAsync(ticket);
+            .UpdateTicketAsync(
+                ticket);
 
         await _assignmentRepository
             .SaveChangesAsync();
@@ -242,6 +311,10 @@ public class TicketAssignmentService
         );
     }
 
+    // =====================================================
+    // AGENT: REQUEST AN OPEN TICKET
+    // =====================================================
+
     public async Task<(bool Success, string Message)>
         RequestAssignmentAsync(
             int ticketId,
@@ -250,7 +323,8 @@ public class TicketAssignmentService
     {
         var agent =
             await _assignmentRepository
-                .GetAgentByIdAsync(agentId);
+                .GetAgentByIdAsync(
+                    agentId);
 
         if (agent == null)
         {
@@ -262,7 +336,8 @@ public class TicketAssignmentService
 
         var ticket =
             await _assignmentRepository
-                .GetTicketByIdAsync(ticketId);
+                .GetTicketByIdAsync(
+                    ticketId);
 
         if (ticket == null)
         {
@@ -272,7 +347,10 @@ public class TicketAssignmentService
             );
         }
 
-        if (ticket.AssignedToUserId.HasValue)
+        if (
+            ticket.AssignedToUserId
+                .HasValue
+        )
         {
             return (
                 false,
@@ -280,6 +358,11 @@ public class TicketAssignmentService
             );
         }
 
+        /*
+         * Agents can request only Open tickets.
+         * Pending Review tickets have not yet been
+         * made available by the Manager.
+         */
         if (!IsOpen(ticket))
         {
             return (
@@ -290,9 +373,13 @@ public class TicketAssignmentService
 
         int activeTicketCount =
             await _assignmentRepository
-                .GetAgentActiveTicketCountAsync(agentId);
+                .GetAgentActiveTicketCountAsync(
+                    agentId);
 
-        if (activeTicketCount >= MaximumActiveTicketsPerAgent)
+        if (
+            activeTicketCount >=
+            MaximumActiveTicketsPerAgent
+        )
         {
             return (
                 false,
@@ -317,40 +404,55 @@ public class TicketAssignmentService
         var assignmentRequest =
             new TicketAssignment
             {
-                TicketId = ticket.Id,
+                TicketId =
+                    ticket.Id,
 
-                AssignedToUserId = agentId,
+                AssignedToUserId =
+                    agentId,
 
                 /*
-                 * For a self-request, the requesting agent is
-                 * initially stored in both fields.
+                 * During a self-request, the Agent
+                 * is initially stored in both fields.
+                 * AssignedByUserId will be replaced
+                 * by the reviewer ID after approval.
                  */
-                AssignedByUserId = agentId,
+                AssignedByUserId =
+                    agentId,
 
                 AssignmentType =
-                    AssignmentTypes.AgentRequest,
+                    AssignmentTypes
+                        .AgentRequest,
 
                 ApprovalStatus =
-                    AssignmentApprovalStatuses.Pending,
+                    AssignmentApprovalStatuses
+                        .Pending,
 
-                Notes = NormalizeNotes(request.Notes),
+                Notes =
+                    NormalizeNotes(
+                        request.Notes),
 
-                AssignedDate = DateTime.UtcNow,
+                AssignedDate =
+                    DateTime.UtcNow,
 
                 IsActive = false
             };
 
         await _assignmentRepository
-            .AddAssignmentAsync(assignmentRequest);
+            .AddAssignmentAsync(
+                assignmentRequest);
 
         await _assignmentRepository
             .SaveChangesAsync();
 
         return (
             true,
-            "Assignment request submitted for manager approval."
+            "Assignment request submitted for Manager approval."
         );
     }
+
+    // =====================================================
+    // MANAGER / ADMIN: APPROVE OR REJECT AGENT REQUEST
+    // =====================================================
 
     public async Task<(bool Success, string Message)>
         ReviewRequestAsync(
@@ -371,20 +473,24 @@ public class TicketAssignmentService
             );
         }
 
-        if (
-            assignment.AssignmentType !=
-                AssignmentTypes.AgentRequest ||
-            assignment.ApprovalStatus !=
-                AssignmentApprovalStatuses.Pending
-        )
+        bool isPendingAgentRequest =
+            assignment.AssignmentType ==
+                AssignmentTypes.AgentRequest
+            &&
+            assignment.ApprovalStatus ==
+                AssignmentApprovalStatuses
+                    .Pending;
+
+        if (!isPendingAgentRequest)
         {
             return (
                 false,
-                "This assignment request has already been reviewed or is not an agent request."
+                "This assignment request has already been reviewed or is not an Agent request."
             );
         }
 
-        var ticket = assignment.Ticket;
+        var ticket =
+            assignment.Ticket;
 
         if (ticket == null)
         {
@@ -394,18 +500,26 @@ public class TicketAssignmentService
             );
         }
 
+        // =============================================
+        // REJECT REQUEST
+        // =============================================
+
         if (!request.Approved)
         {
             assignment.ApprovalStatus =
-                AssignmentApprovalStatuses.Rejected;
+                AssignmentApprovalStatuses
+                    .Rejected;
 
             assignment.ReviewedDate =
                 DateTime.UtcNow;
 
-            assignment.IsActive = false;
+            assignment.IsActive =
+                false;
 
-            if (!string.IsNullOrWhiteSpace(
-                    request.Notes))
+            if (
+                !string.IsNullOrWhiteSpace(
+                    request.Notes)
+            )
             {
                 assignment.Notes =
                     CombineNotes(
@@ -414,7 +528,8 @@ public class TicketAssignmentService
             }
 
             await _assignmentRepository
-                .UpdateAssignmentAsync(assignment);
+                .UpdateAssignmentAsync(
+                    assignment);
 
             await _assignmentRepository
                 .SaveChangesAsync();
@@ -425,11 +540,18 @@ public class TicketAssignmentService
             );
         }
 
-        if (ticket.AssignedToUserId.HasValue)
+        // =============================================
+        // APPROVE REQUEST
+        // =============================================
+
+        if (
+            ticket.AssignedToUserId
+                .HasValue
+        )
         {
             return (
                 false,
-                "This ticket was assigned to another agent before the request was reviewed."
+                "This ticket was assigned to another Agent before the request was reviewed."
             );
         }
 
@@ -444,13 +566,14 @@ public class TicketAssignmentService
         var agent =
             await _assignmentRepository
                 .GetAgentByIdAsync(
-                    assignment.AssignedToUserId);
+                    assignment
+                        .AssignedToUserId);
 
         if (agent == null)
         {
             return (
                 false,
-                "The requesting agent is no longer active."
+                "The requesting Agent is no longer active."
             );
         }
 
@@ -459,32 +582,38 @@ public class TicketAssignmentService
                 .GetAgentActiveTicketCountAsync(
                     agent.Id);
 
-        if (activeTicketCount >=
-            MaximumActiveTicketsPerAgent)
+        if (
+            activeTicketCount >=
+            MaximumActiveTicketsPerAgent
+        )
         {
             return (
                 false,
-                "The requesting agent is now fully loaded."
+                "The requesting Agent is now fully loaded."
             );
         }
 
         assignment.ApprovalStatus =
-            AssignmentApprovalStatuses.Approved;
+            AssignmentApprovalStatuses
+                .Approved;
 
         assignment.ReviewedDate =
             DateTime.UtcNow;
 
-        assignment.IsActive = true;
+        assignment.IsActive =
+            true;
 
         /*
-         * The reviewer becomes the user who approved
-         * the assignment.
+         * After approval, AssignedByUserId records
+         * the Manager/Admin who approved the request.
          */
         assignment.AssignedByUserId =
             reviewerUserId;
 
-        if (!string.IsNullOrWhiteSpace(
-                request.Notes))
+        if (
+            !string.IsNullOrWhiteSpace(
+                request.Notes)
+        )
         {
             assignment.Notes =
                 CombineNotes(
@@ -495,13 +624,16 @@ public class TicketAssignmentService
         ticket.AssignedToUserId =
             assignment.AssignedToUserId;
 
-        ticket.StatusId = 2;
+        ticket.StatusId =
+            TicketStatusIds.Assigned;
 
         await _assignmentRepository
-            .UpdateAssignmentAsync(assignment);
+            .UpdateAssignmentAsync(
+                assignment);
 
         await _assignmentRepository
-            .UpdateTicketAsync(ticket);
+            .UpdateTicketAsync(
+                ticket);
 
         await _assignmentRepository
             .SaveChangesAsync();
@@ -511,6 +643,10 @@ public class TicketAssignmentService
             $"Assignment request approved for {agent.FirstName} {agent.LastName}."
         );
     }
+
+    // =====================================================
+    // MANAGER / ADMIN: AGENT WORKLOAD
+    // =====================================================
 
     public async Task<List<AgentWorkloadDto>>
         GetAgentWorkloadsAsync()
@@ -529,29 +665,39 @@ public class TicketAssignmentService
                     .GetAgentActiveTicketCountAsync(
                         agent.Id);
 
-            result.Add(new AgentWorkloadDto
-            {
-                AgentId = agent.Id,
+            result.Add(
+                new AgentWorkloadDto
+                {
+                    AgentId =
+                        agent.Id,
 
-                FullName =
-                    $"{agent.FirstName} {agent.LastName}",
+                    FullName =
+                        $"{agent.FirstName} {agent.LastName}",
 
-                Email = agent.Email,
+                    Email =
+                        agent.Email,
 
-                ActiveTicketCount =
-                    activeTicketCount,
+                    ActiveTicketCount =
+                        activeTicketCount,
 
-                IsFullyLoaded =
-                    activeTicketCount >=
-                    MaximumActiveTicketsPerAgent
-            });
+                    IsFullyLoaded =
+                        activeTicketCount >=
+                        MaximumActiveTicketsPerAgent
+                }
+            );
         }
 
         return result
-            .OrderBy(a => a.ActiveTicketCount)
-            .ThenBy(a => a.FullName)
+            .OrderBy(agent =>
+                agent.ActiveTicketCount)
+            .ThenBy(agent =>
+                agent.FullName)
             .ToList();
     }
+
+    // =====================================================
+    // MANAGER / ADMIN: PENDING REQUESTS
+    // =====================================================
 
     public async Task<List<TicketAssignmentResponseDto>>
         GetPendingRequestsAsync()
@@ -565,8 +711,13 @@ public class TicketAssignmentService
             .ToList();
     }
 
+    // =====================================================
+    // MANAGER / ADMIN: ASSIGNMENT HISTORY
+    // =====================================================
+
     public async Task<List<TicketAssignmentResponseDto>>
-        GetAssignmentHistoryAsync(int ticketId)
+        GetAssignmentHistoryAsync(
+            int ticketId)
     {
         var assignments =
             await _assignmentRepository
@@ -578,8 +729,19 @@ public class TicketAssignmentService
             .ToList();
     }
 
+    // =====================================================
+    // AGENT OR MANAGER: AVAILABLE / UNASSIGNED TICKETS
+    //
+    // agentId > 0:
+    //     Agent view, Open only
+    //
+    // agentId <= 0:
+    //     Manager view, Pending Review + Open
+    // =====================================================
+
     public async Task<List<AvailableTicketDto>>
-        GetAvailableTicketsAsync(int agentId)
+        GetAvailableTicketsAsync(
+            int agentId)
     {
         var tickets =
             await _assignmentRepository
@@ -591,46 +753,80 @@ public class TicketAssignmentService
 
         foreach (var ticket in tickets)
         {
-            var pendingRequest =
-                await _assignmentRepository
-                    .GetPendingRequestAsync(
-                        ticket.Id,
-                        agentId);
+            bool hasPendingRequest =
+                false;
+
+            /*
+             * A Manager passes zero, so do not search
+             * for a request belonging to user ID zero.
+             */
+            if (agentId > 0)
+            {
+                var pendingRequest =
+                    await _assignmentRepository
+                        .GetPendingRequestAsync(
+                            ticket.Id,
+                            agentId);
+
+                hasPendingRequest =
+                    pendingRequest != null;
+            }
 
             result.Add(
                 MapTicket(
                     ticket,
-                    pendingRequest != null));
+                    hasPendingRequest)
+            );
         }
 
         return result;
     }
 
+    // =====================================================
+    // AGENT: CURRENT ASSIGNED TICKETS
+    // =====================================================
+
     public async Task<List<AvailableTicketDto>>
-        GetAgentTicketsAsync(int agentId)
+        GetAgentTicketsAsync(
+            int agentId)
     {
         var tickets =
             await _assignmentRepository
-                .GetAgentTicketsAsync(agentId);
+                .GetAgentTicketsAsync(
+                    agentId);
 
         return tickets
             .Select(ticket =>
-                MapTicket(ticket, false))
+                MapTicket(
+                    ticket,
+                    false))
             .ToList();
     }
 
+    // =====================================================
+    // AGENT: RESOLVED / CLOSED HISTORY
+    // =====================================================
+
     public async Task<List<AvailableTicketDto>>
-        GetAgentHistoryAsync(int agentId)
+        GetAgentHistoryAsync(
+            int agentId)
     {
         var tickets =
             await _assignmentRepository
-                .GetAgentHistoryAsync(agentId);
+                .GetAgentHistoryAsync(
+                    agentId);
 
         return tickets
             .Select(ticket =>
-                MapTicket(ticket, false))
+                MapTicket(
+                    ticket,
+                    false))
             .ToList();
     }
+
+    // =====================================================
+    // DTO MAPPING: ASSIGNMENT
+    // =====================================================
 
     private static TicketAssignmentResponseDto
         MapAssignment(
@@ -638,9 +834,11 @@ public class TicketAssignmentService
     {
         return new TicketAssignmentResponseDto
         {
-            Id = assignment.Id,
+            Id =
+                assignment.Id,
 
-            TicketId = assignment.TicketId,
+            TicketId =
+                assignment.TicketId,
 
             TicketReference =
                 assignment.Ticket?
@@ -651,19 +849,23 @@ public class TicketAssignmentService
                     .Title ?? "",
 
             AssignedToUserId =
-                assignment.AssignedToUserId,
+                assignment
+                    .AssignedToUserId,
 
             AssignedToUser =
-                assignment.AssignedToUser == null
+                assignment.AssignedToUser ==
+                    null
                     ? ""
                     : $"{assignment.AssignedToUser.FirstName} " +
                       $"{assignment.AssignedToUser.LastName}",
 
             AssignedByUserId =
-                assignment.AssignedByUserId,
+                assignment
+                    .AssignedByUserId,
 
             AssignedByUser =
-                assignment.AssignedByUser == null
+                assignment.AssignedByUser ==
+                    null
                     ? ""
                     : $"{assignment.AssignedByUser.FirstName} " +
                       $"{assignment.AssignedByUser.LastName}",
@@ -674,7 +876,8 @@ public class TicketAssignmentService
             ApprovalStatus =
                 assignment.ApprovalStatus,
 
-            Notes = assignment.Notes,
+            Notes =
+                assignment.Notes,
 
             AssignedDate =
                 assignment.AssignedDate,
@@ -690,6 +893,10 @@ public class TicketAssignmentService
         };
     }
 
+    // =====================================================
+    // DTO MAPPING: TICKET
+    // =====================================================
+
     private static AvailableTicketDto
         MapTicket(
             Ticket ticket,
@@ -697,12 +904,14 @@ public class TicketAssignmentService
     {
         return new AvailableTicketDto
         {
-            Id = ticket.Id,
+            Id =
+                ticket.Id,
 
             ReferenceNumber =
                 ticket.ReferenceNumber,
 
-            Title = ticket.Title,
+            Title =
+                ticket.Title,
 
             Description =
                 ticket.Description,
@@ -730,51 +939,69 @@ public class TicketAssignmentService
         };
     }
 
-    private static bool IsOpen(Ticket ticket)
+    // =====================================================
+    // STATUS HELPERS
+    // =====================================================
+
+    private static bool IsOpen(
+        Ticket ticket)
     {
-        return string.Equals(
-            ticket.Status?.Name,
-            "Open",
-            StringComparison.OrdinalIgnoreCase);
+        return ticket.StatusId ==
+            TicketStatusIds.Open;
     }
 
-    private static bool IsFinished(Ticket ticket)
+    private static bool IsFinished(
+        Ticket ticket)
     {
-        return string.Equals(
-                   ticket.Status?.Name,
-                   "Resolved",
-                   StringComparison.OrdinalIgnoreCase)
-               ||
-               string.Equals(
-                   ticket.Status?.Name,
-                   "Closed",
-                   StringComparison.OrdinalIgnoreCase);
+        return
+            ticket.StatusId ==
+                TicketStatusIds.Resolved
+            ||
+            ticket.StatusId ==
+                TicketStatusIds.Closed
+            ||
+            ticket.StatusId ==
+                TicketStatusIds.Canceled;
     }
 
-    private static string? NormalizeNotes(
-        string? notes)
+    // =====================================================
+    // NOTES HELPERS
+    // =====================================================
+
+    private static string?
+        NormalizeNotes(
+            string? notes)
     {
-        return string.IsNullOrWhiteSpace(notes)
+        return string.IsNullOrWhiteSpace(
+            notes)
             ? null
             : notes.Trim();
     }
 
-    private static string? CombineNotes(
-        string? originalNotes,
-        string? reviewNotes)
+    private static string?
+        CombineNotes(
+            string? originalNotes,
+            string? reviewNotes)
     {
         string? original =
-            NormalizeNotes(originalNotes);
+            NormalizeNotes(
+                originalNotes);
 
         string? review =
-            NormalizeNotes(reviewNotes);
+            NormalizeNotes(
+                reviewNotes);
 
         if (original == null)
+        {
             return review;
+        }
 
         if (review == null)
+        {
             return original;
+        }
 
-        return $"{original}\nManager review: {review}";
+        return
+            $"{original}\nManager review: {review}";
     }
 }

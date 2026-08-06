@@ -3,7 +3,7 @@ using ITHelpDesk.API.Data;
 using ITHelpDesk.API.DTOs;
 using ITHelpDesk.API.Interfaces;
 using ITHelpDesk.API.Models;
-
+using ITHelpDesk.API.Constants;
 namespace ITHelpDesk.API.Repositories;
 
 public class TicketRepository : ITicketRepository
@@ -18,22 +18,26 @@ public class TicketRepository : ITicketRepository
     public async Task<List<Ticket>> GetAllAsync()
     {
         return await _context.Tickets
-            .Include(t => t.Category)
-            .Include(t => t.Priority)
-            .Include(t => t.Status)
-            .Include(t => t.CreatedByUser)
-            .OrderByDescending(t => t.CreatedDate)
+            .Include(ticket => ticket.Category)
+            .Include(ticket => ticket.Priority)
+            .Include(ticket => ticket.Status)
+            .Include(ticket => ticket.CreatedByUser)
+            .Include(ticket => ticket.AssignedToUser)
+            .OrderByDescending(ticket =>
+                ticket.CreatedDate)
             .ToListAsync();
     }
-
-    public async Task<Ticket?> GetByIdAsync(int id)
+    public async Task<Ticket?> GetByIdAsync(
+          int ticketId)
     {
         return await _context.Tickets
-            .Include(t => t.Category)
-            .Include(t => t.Priority)
-            .Include(t => t.Status)
-            .Include(t => t.CreatedByUser)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .Include(ticket => ticket.Category)
+            .Include(ticket => ticket.Priority)
+            .Include(ticket => ticket.Status)
+            .Include(ticket => ticket.CreatedByUser)
+            .Include(ticket => ticket.AssignedToUser)
+            .FirstOrDefaultAsync(ticket =>
+                ticket.Id == ticketId);
     }
 
     public async Task AddAsync(Ticket ticket)
@@ -153,5 +157,82 @@ public class TicketRepository : ITicketRepository
         return await query
             .OrderByDescending(t => t.CreatedDate)
             .ToListAsync();
+    }
+    public async Task<List<Ticket>>
+        GetTicketsForUserAsync(
+            int userId,
+            string role
+        )
+    {
+        var query = _context.Tickets
+            .Include(ticket => ticket.Category)
+            .Include(ticket => ticket.Priority)
+            .Include(ticket => ticket.Status)
+            .Include(ticket =>
+                ticket.CreatedByUser)
+            .Include(ticket =>
+                ticket.AssignedToUser)
+            .AsQueryable();
+
+        if (
+            role == "Admin" ||
+            role == "Manager"
+        )
+        {
+            return await query
+                .OrderByDescending(ticket =>
+                    ticket.CreatedDate)
+                .ToListAsync();
+        }
+
+        if (role == "IT Support Agent")
+        {
+            return await query
+                .Where(ticket =>
+                    ticket.AssignedToUserId ==
+                        userId
+                    ||
+                    (
+                        ticket.AssignedToUserId ==
+                            null
+                        &&
+                        ticket.StatusId ==
+                            TicketStatusIds.Open
+                    )
+                )
+                .OrderByDescending(ticket =>
+                    ticket.CreatedDate)
+                .ToListAsync();
+        }
+
+        if (role == "Employee")
+        {
+            return await query
+                .Where(ticket =>
+                    ticket.CreatedByUserId ==
+                        userId
+                    ||
+                    (
+                        (
+                            ticket.StatusId ==
+                                TicketStatusIds
+                                    .Resolved
+                            ||
+                            ticket.StatusId ==
+                                TicketStatusIds
+                                    .Closed
+                        )
+                        &&
+                        ticket.Solution != null
+                        &&
+                        ticket.Solution != ""
+                    )
+                )
+                .OrderByDescending(ticket =>
+                    ticket.CreatedDate)
+                .ToListAsync();
+        }
+
+        return new List<Ticket>();
     }
 }

@@ -4,6 +4,7 @@ using ITHelpDesk.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ITHelpDesk.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731111013_AddWorkflowTrackingTables")]
+    partial class AddWorkflowTrackingTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -365,56 +368,26 @@ namespace ITHelpDesk.API.Migrations
                         new
                         {
                             Id = 2,
-                            DisplayOrder = 4,
+                            DisplayOrder = 2,
                             Name = "In Progress"
                         },
                         new
                         {
                             Id = 3,
-                            DisplayOrder = 2,
-                            Name = "Pending Review"
+                            DisplayOrder = 3,
+                            Name = "Pending"
                         },
                         new
                         {
                             Id = 4,
-                            DisplayOrder = 8,
+                            DisplayOrder = 4,
                             Name = "Resolved"
                         },
                         new
                         {
                             Id = 5,
-                            DisplayOrder = 9,
-                            Name = "Closed"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            DisplayOrder = 3,
-                            Name = "Assigned"
-                        },
-                        new
-                        {
-                            Id = 7,
                             DisplayOrder = 5,
-                            Name = "Escalated"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            DisplayOrder = 6,
-                            Name = "Rejected"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            DisplayOrder = 7,
-                            Name = "Canceled"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            DisplayOrder = 10,
-                            Name = "Reopened"
+                            Name = "Closed"
                         });
                 });
 

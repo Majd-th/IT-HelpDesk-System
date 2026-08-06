@@ -1,15 +1,20 @@
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
 
-import Layout from "../components/Layout";
+import Layout from
+    "../components/Layout";
 
 import {
     getUnassignedTickets,
     getAgentWorkloads,
+    getPendingRequests,
     assignTicket,
     reassignTicket,
-    getPendingRequests,
     reviewAssignmentRequest,
-    getAssignmentHistory
+    getAssignmentHistory,
+    publishTicket
 } from "../services/assignmentService";
 
 import "../assets/assignment-management.css";
@@ -90,6 +95,68 @@ function AssignmentManagement() {
             setLoading(false);
         }
     }
+    async function handlePublish(ticket) {
+    const notes =
+        window.prompt(
+            `Why are you publishing ${ticket.referenceNumber}?`
+        );
+
+    if (notes === null) {
+        return;
+    }
+
+    if (notes.trim().length < 5) {
+        alert(
+            "Publishing notes must contain at least 5 characters."
+        );
+
+        return;
+    }
+
+    const confirmed =
+        window.confirm(
+            `Publish ${ticket.referenceNumber} for IT Agents to request?`
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        setProcessing(true);
+        setError("");
+        setMessage("");
+
+        const response =
+            await publishTicket(
+                ticket.id,
+                notes
+            );
+
+        setMessage(
+            response.message ||
+            "Ticket published successfully."
+        );
+
+        /*
+         * Reload the information without refreshing
+         * the entire browser page.
+         */
+        await loadAssignmentData();
+    } catch (requestError) {
+        console.error(
+            "Publish failed:",
+            requestError
+        );
+
+        setError(
+            requestError.response?.data?.message ||
+            "Could not publish the ticket."
+        );
+    } finally {
+        setProcessing(false);
+    }
+}
 
     function openAssignForm(ticket) {
         setSelectedTicket(ticket);
@@ -445,12 +512,11 @@ function AssignmentManagement() {
                     <section className="assignment-card">
                         <div className="assignment-section-heading">
                             <div>
-                                <h2>Unassigned Open Tickets</h2>
-
-                                <p>
-                                    Assign tickets to agents with
-                                    available capacity.
-                                </p>
+                                <h2>Unassigned  Tickets</h2>
+<p>
+    Review Pending Review tickets or assign available
+    tickets to agents.
+</p>
                             </div>
                         </div>
 
@@ -491,18 +557,31 @@ function AssignmentManagement() {
                                                     )}
                                                 </td>
 
-                                                <td>
-                                                    <button
-                                                        type="button"
-                                                        className="assignment-action-button"
-                                                        onClick={() =>
-                                                            openAssignForm(
-                                                                ticket
-                                                            )
-                                                        }
-                                                    >
-                                                        Assign
-                                                    </button>
+                                               <td className="assignment-actions">
+    <button
+        type="button"
+        className="assignment-button"
+        onClick={() =>
+            openAssignForm(ticket)
+        }
+        disabled={processing}
+    >
+        Assign
+    </button>
+
+    {ticket.status === "Pending Review" && (
+        <button
+            type="button"
+            className="publish-button"
+            onClick={() =>
+                handlePublish(ticket)
+            }
+            disabled={processing}
+        >
+            Publish
+        </button>
+    )}
+
                                                 </td>
                                             </tr>
                                         ))}
@@ -527,7 +606,7 @@ function AssignmentManagement() {
                         </div>
 
                         {workloads.length === 0 ? (
-                            <p>No active agents found.</p>
+                            <p> No tickets are currently awaiting assignment.</p>
                         ) : (
                             <div className="assignment-workload-grid">
                                 {workloads.map((agent) => (

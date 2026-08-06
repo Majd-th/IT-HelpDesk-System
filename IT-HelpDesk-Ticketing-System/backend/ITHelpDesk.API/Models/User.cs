@@ -54,6 +54,8 @@ public class User
 
     public ICollection<ActivityLog> ActivityLogs { get; set; }
         = new List<ActivityLog>();
+    public ICollection<TicketWorkLog> TicketWorkLogs { get; set; }
+= new List<TicketWorkLog>();
     public ICollection<TicketAssignment> AssignedTicketsHistory { get; set; } = new List<TicketAssignment>();
 
     public ICollection<TicketAssignment> AssignedByHistory { get; set; } = new List<TicketAssignment>();

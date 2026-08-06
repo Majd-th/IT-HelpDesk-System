@@ -19,4 +19,8 @@ public interface ITicketRepository
 
     Task<List<Ticket>> FilterTicketsAsync(
         TicketFilterDto filter);
+    Task<List<Ticket>> GetTicketsForUserAsync(
+int userId,
+string role);
+
 }

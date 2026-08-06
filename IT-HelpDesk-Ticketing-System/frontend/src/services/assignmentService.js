@@ -113,3 +113,18 @@ export async function getMyTicketHistory() {
 
     return response.data;
 }
+export async function publishTicket(
+    ticketId,
+    notes
+) {
+    const response =
+        await api.put(
+            `/Ticket/${ticketId}/publish`,
+            {
+                notes:
+                    notes.trim()
+            }
+        );
+
+    return response.data;
+}

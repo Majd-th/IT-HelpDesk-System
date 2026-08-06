@@ -383,3 +383,162 @@
     background-color: #e5e7eb;
     color: #374151;
 }
+.ticket-action-message {
+    margin-bottom: 18px;
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.ticket-action-success {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.ticket-action-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.ticket-action-panel {
+    margin-top: 24px;
+    padding: 22px;
+    border: 1px solid #dbe3ee;
+    border-radius: 12px;
+    background-color: #f8fafc;
+}
+
+.ticket-action-panel h2 {
+    margin-top: 0;
+}
+
+.ticket-action-panel textarea {
+    width: 100%;
+    min-height: 110px;
+    margin-top: 8px;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    resize: vertical;
+}
+
+.start-work-button,
+.resolve-ticket-button {
+    margin-top: 14px;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 8px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.resolve-ticket-button {
+    background-color: #16a34a;
+}
+
+.start-work-button:disabled,
+.resolve-ticket-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 118px;
+    padding: 7px 14px;
+
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.status-pending-review {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-open {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-assigned {
+    background-color: #ede9fe;
+    color: #6d28d9;
+}
+
+.status-in-progress {
+    background-color: #ffedb5;
+    color: #92400e;
+}
+
+.status-resolved {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.status-closed {
+    background-color: #e2e8f0;
+    color: #334155;
+}
+
+.status-escalated {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.status-rejected {
+    background-color: #fecaca;
+    color: #991b1b;
+}
+
+.status-canceled {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.status-reopened {
+    background-color: #cffafe;
+    color: #0e7490;
+}
+
+.status-default {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+.ticket-details-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.close-ticket-button {
+    margin-top: 14px;
+    padding: 11px 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #475569;
+    color: #ffffff;
+
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.close-ticket-button:hover {
+    background-color: #334155;
+}
+
+.close-ticket-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
