@@ -12,8 +12,10 @@
     "vite": "^8.1.1"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.4",
     "axios": "^1.18.1",
     "jwt-decode": "^4.0.0",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "recharts": "^3.10.1"
   }
 }

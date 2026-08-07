@@ -221,6 +221,23 @@ builder.Services.AddScoped<
     IStatusService,
     StatusService>();
 
+
+
+
+
+
+
+
+
+builder.Services.AddScoped<
+    IDashboardRepository,
+    DashboardRepository
+>();
+
+builder.Services.AddScoped<
+    IDashboardService,
+    DashboardService
+>();
 var app = builder.Build();
 
 // =====================================================
