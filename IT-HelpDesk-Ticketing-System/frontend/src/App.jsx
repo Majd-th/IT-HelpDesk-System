@@ -16,6 +16,8 @@ import Tickets from "./pages/Tickets";
 import CreateTicket from "./pages/CreateTicket";
 import EditTicket from "./pages/EditTicket";
 import TicketDetails from "./pages/TicketDetails";
+import NotificationsPage from
+    "./pages/NotificationsPage";
 
 //import Profile from "./pages/Profile";
 //  import AdminPanel from "./pages/AdminPanel";
@@ -151,6 +153,11 @@ function App() {
         <ProtectedRoute>
             <Profile />
         </ProtectedRoute>
+    }
+/><Route
+    path="/notifications"
+    element={
+        <NotificationsPage />
     }
 />
                 <Route

@@ -307,4 +307,28 @@ public class TicketAssignmentController : ControllerBase
 
         return Ok(tickets);
     }
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("reassignable-tickets")]
+    public async Task<IActionResult>
+    GetReassignableTickets()
+    {
+        var tickets =
+            await _assignmentService
+                .GetReassignableTicketsAsync();
+
+        return Ok(tickets);
+    }
+
+
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("history-tickets")]
+    public async Task<IActionResult>
+    GetHistoryTickets()
+    {
+        var tickets =
+            await _assignmentService
+                .GetHistoryTicketsAsync();
+
+        return Ok(tickets);
+    }
 }

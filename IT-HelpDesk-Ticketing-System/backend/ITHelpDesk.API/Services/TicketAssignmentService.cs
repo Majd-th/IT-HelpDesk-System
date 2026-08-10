@@ -10,13 +10,17 @@ public class TicketAssignmentService
 {
     private readonly ITicketAssignmentRepository
         _assignmentRepository;
+    private readonly INotificationService
+_notificationService;
 
     private const int MaximumActiveTicketsPerAgent = 5;
 
     public TicketAssignmentService(
-        ITicketAssignmentRepository assignmentRepository)
+        ITicketAssignmentRepository assignmentRepository,
+        INotificationService notificationService)
     {
         _assignmentRepository = assignmentRepository;
+        _notificationService = notificationService;
     }
 
     // =====================================================
@@ -146,6 +150,13 @@ public class TicketAssignmentService
 
         await _assignmentRepository
             .SaveChangesAsync();
+        await _notificationService
+.NotifyAgentTicketAssignedAsync(
+    agent.Id,
+    ticket.Id,
+    ticket.ReferenceNumber,
+    ticket.Title
+);
 
         return (
             true,
@@ -157,7 +168,6 @@ public class TicketAssignmentService
     // MANAGER / ADMIN: REASSIGN A TICKET
     // Existing status -> Assigned for new Agent
     // =====================================================
-
     public async Task<(bool Success, string Message)>
         ReassignTicketAsync(
             int ticketId,
@@ -166,7 +176,8 @@ public class TicketAssignmentService
     {
         var ticket =
             await _assignmentRepository
-                .GetTicketByIdAsync(ticketId);
+                .GetTicketByIdAsync(
+                    ticketId);
 
         if (ticket == null)
         {
@@ -176,13 +187,14 @@ public class TicketAssignmentService
             );
         }
 
-        if (
-            !ticket.AssignedToUserId.HasValue
-        )
+        int? oldAgentId =
+            ticket.AssignedToUserId;
+
+        if (!oldAgentId.HasValue)
         {
             return (
                 false,
-                "This ticket is not currently assigned. Use the normal assign operation instead."
+                "This ticket is not currently assigned to an Agent."
             );
         }
 
@@ -190,7 +202,7 @@ public class TicketAssignmentService
         {
             return (
                 false,
-                "Resolved, closed, or canceled tickets cannot be reassigned."
+                "Resolved or closed tickets cannot be reassigned."
             );
         }
 
@@ -207,10 +219,7 @@ public class TicketAssignmentService
             );
         }
 
-        if (
-            ticket.AssignedToUserId ==
-            newAgent.Id
-        )
+        if (oldAgentId.Value == newAgent.Id)
         {
             return (
                 false,
@@ -255,7 +264,8 @@ public class TicketAssignmentService
         var newAssignment =
             new TicketAssignment
             {
-                TicketId = ticket.Id,
+                TicketId =
+                    ticket.Id,
 
                 AssignedToUserId =
                     newAgent.Id,
@@ -264,8 +274,7 @@ public class TicketAssignmentService
                     assignedByUserId,
 
                 AssignmentType =
-                    AssignmentTypes
-                        .Reassignment,
+                    AssignmentTypes.Reassignment,
 
                 ApprovalStatus =
                     AssignmentApprovalStatuses
@@ -281,15 +290,16 @@ public class TicketAssignmentService
                 ReviewedDate =
                     DateTime.UtcNow,
 
-                IsActive = true
+                IsActive =
+                    true
             };
 
         ticket.AssignedToUserId =
             newAgent.Id;
 
         /*
-         * The new Agent must explicitly click
-         * Start Work after receiving the ticket.
+         * The new Agent must acknowledge
+         * and start the work themselves.
          */
         ticket.StatusId =
             TicketStatusIds.Assigned;
@@ -305,11 +315,21 @@ public class TicketAssignmentService
         await _assignmentRepository
             .SaveChangesAsync();
 
+        await _notificationService
+            .NotifyTicketReassignedAsync(
+                oldAgentId,
+                newAgent.Id,
+                ticket.Id,
+                ticket.ReferenceNumber,
+                ticket.Title
+            );
+
         return (
             true,
             $"Ticket reassigned to {newAgent.FirstName} {newAgent.LastName}."
         );
     }
+
 
     // =====================================================
     // AGENT: REQUEST AN OPEN TICKET
@@ -443,6 +463,13 @@ public class TicketAssignmentService
 
         await _assignmentRepository
             .SaveChangesAsync();
+        await _notificationService
+.NotifyManagersAndAdminsAssignmentRequestAsync(
+    ticket.Id,
+    ticket.ReferenceNumber,
+    ticket.Title,
+    agent.FirstName + " " + agent.LastName
+);
 
         return (
             true,
@@ -512,7 +539,8 @@ public class TicketAssignmentService
 
             assignment.ReviewedDate =
                 DateTime.UtcNow;
-
+            assignment.AssignedByUserId =
+                reviewerUserId;
             assignment.IsActive =
                 false;
 
@@ -533,6 +561,14 @@ public class TicketAssignmentService
 
             await _assignmentRepository
                 .SaveChangesAsync();
+            await _notificationService
+.CreateNotificationAsync(
+    assignment.AssignedToUserId,
+    ticket.Id,
+    "Assignment Request Rejected",
+    $"Your request for {ticket.ReferenceNumber} - {ticket.Title} was rejected.",
+    "AssignmentRejected"
+);
 
             return (
                 true,
@@ -599,7 +635,8 @@ public class TicketAssignmentService
 
         assignment.ReviewedDate =
             DateTime.UtcNow;
-
+        assignment.AssignedByUserId =
+            reviewerUserId;
         assignment.IsActive =
             true;
 
@@ -637,6 +674,14 @@ public class TicketAssignmentService
 
         await _assignmentRepository
             .SaveChangesAsync();
+        await _notificationService
+.NotifyAgentAssignmentDecisionAsync(
+    assignment.AssignedToUserId,
+    ticket.Id,
+    ticket.ReferenceNumber,
+    ticket.Title,
+    request.Approved
+);
 
         return (
             true,
@@ -1003,5 +1048,72 @@ public class TicketAssignmentService
 
         return
             $"{original}\nManager review: {review}";
+    }
+
+    public async Task<List<TicketSelectionDto>>
+    GetReassignableTicketsAsync()
+    {
+        var tickets =
+            await _assignmentRepository
+                .GetReassignableTicketsAsync();
+
+        return tickets
+            .Select(ticket =>
+                new TicketSelectionDto
+                {
+                    Id = ticket.Id,
+
+                    ReferenceNumber =
+                        ticket.ReferenceNumber,
+
+                    Title =
+                        ticket.Title,
+
+                    Status =
+                        ticket.Status?.Name ?? "",
+
+                    AssignedToUserId =
+                        ticket.AssignedToUserId,
+
+                    AssignedTo =
+                        ticket.AssignedToUser == null
+                            ? null
+                            : $"{ticket.AssignedToUser.FirstName} " +
+                              $"{ticket.AssignedToUser.LastName}"
+                })
+            .ToList();
+    }
+    public async Task<List<TicketSelectionDto>>
+        GetHistoryTicketsAsync()
+    {
+        var tickets =
+            await _assignmentRepository
+                .GetHistoryTicketsAsync();
+
+        return tickets
+            .Select(ticket =>
+                new TicketSelectionDto
+                {
+                    Id = ticket.Id,
+
+                    ReferenceNumber =
+                        ticket.ReferenceNumber,
+
+                    Title =
+                        ticket.Title,
+
+                    Status =
+                        ticket.Status?.Name ?? "",
+
+                    AssignedToUserId =
+                        ticket.AssignedToUserId,
+
+                    AssignedTo =
+                        ticket.AssignedToUser == null
+                            ? null
+                            : $"{ticket.AssignedToUser.FirstName} " +
+                              $"{ticket.AssignedToUser.LastName}"
+                })
+            .ToList();
     }
 }

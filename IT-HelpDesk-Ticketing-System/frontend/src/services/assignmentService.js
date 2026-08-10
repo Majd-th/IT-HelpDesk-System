@@ -128,3 +128,19 @@ export async function publishTicket(
 
     return response.data;
 }
+export async function getReassignableTickets() {
+    const response =
+        await api.get(
+            "/TicketAssignment/reassignable-tickets"
+        );
+
+    return response.data;
+}
+export async function getHistoryTickets() {
+    const response =
+        await api.get(
+            "/TicketAssignment/history-tickets"
+        );
+
+    return response.data;
+}

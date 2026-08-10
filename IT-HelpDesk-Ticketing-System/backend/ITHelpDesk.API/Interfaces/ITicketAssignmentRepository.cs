@@ -51,4 +51,9 @@ public interface ITicketAssignmentRepository
         Ticket ticket);
 
     Task SaveChangesAsync();
+    Task<List<Ticket>>
+    GetReassignableTicketsAsync();
+
+    Task<List<Ticket>>
+        GetHistoryTicketsAsync();
 }

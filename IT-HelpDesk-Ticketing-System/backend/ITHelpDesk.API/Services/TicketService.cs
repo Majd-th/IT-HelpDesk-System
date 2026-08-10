@@ -9,7 +9,8 @@ public class TicketService : ITicketService
 {
     private readonly ITicketRepository
     _ticketRepository;
-
+    private readonly INotificationService
+        _notificationService;
     private readonly ITicketWorkLogRepository
         _workLogRepository;
 
@@ -18,11 +19,13 @@ public class TicketService : ITicketService
     public TicketService(
         ITicketRepository ticketRepository,
         ITicketWorkLogRepository workLogRepository,
-        IActivityLogRepository activityLogRepository)
+        IActivityLogRepository activityLogRepository,
+        INotificationService notificationService)
     {
         _ticketRepository = ticketRepository;
         _workLogRepository = workLogRepository;
         _activityLogRepository = activityLogRepository;
+        _notificationService = notificationService;
     }
     public async Task<TicketResponseDto> CreateTicketAsync(
         CreateTicketRequestDto request,
@@ -46,6 +49,12 @@ public class TicketService : ITicketService
 
         await _ticketRepository.AddAsync(ticket);
         await _ticketRepository.SaveChangesAsync();
+        await _notificationService
+    .NotifyManagersAndAdminsAsync(
+        ticket.Id,
+        ticket.ReferenceNumber,
+        ticket.Title
+    );
         await _activityLogRepository.AddAsync(new ActivityLog
         {
             TicketId = ticket.Id,
@@ -651,6 +660,16 @@ DeleteTicketAsync(
          */
         await _ticketRepository
             .SaveChangesAsync();
+        await _ticketRepository
+            .SaveChangesAsync();
+
+        await _notificationService
+            .NotifyTicketCreatorWorkStartedAsync(
+                ticket.CreatedByUserId,
+                ticket.Id,
+                ticket.ReferenceNumber,
+                ticket.Title
+            );
 
         await _activityLogRepository.AddAsync(
             new ActivityLog
@@ -915,7 +934,13 @@ DeleteTicketAsync(
                     resolvedTime
             }
         );
-
+        await _notificationService
+            .NotifyTicketResolvedAsync(
+                ticket.CreatedByUserId,
+                ticket.Id,
+                ticket.ReferenceNumber,
+                ticket.Title
+            );
         return (
             true,
             "Ticket resolved successfully."
@@ -1042,7 +1067,15 @@ DeleteTicketAsync(
                     closedTime
             }
         );
-
+        await _notificationService
+            .NotifyTicketClosedAsync(
+                ticket.CreatedByUserId,
+                ticket.AssignedToUserId,
+                userId,
+                ticket.Id,
+                ticket.ReferenceNumber,
+                ticket.Title
+            );
         return (
             true,
             "Ticket closed successfully."
@@ -1143,9 +1176,16 @@ DeleteTicketAsync(
                     TicketStatusNames.Open,
 
                 CreatedDate =
-                    publishedDate
+                    DateTime.UtcNow
             }
         );
+
+        await _notificationService
+            .NotifyAgentsTicketPublishedAsync(
+                ticket.Id,
+                ticket.ReferenceNumber,
+                ticket.Title
+            );
 
         return (
             true,

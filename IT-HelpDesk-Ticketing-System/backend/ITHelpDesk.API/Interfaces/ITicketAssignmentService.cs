@@ -1,5 +1,5 @@
 using ITHelpDesk.API.DTOs;
-
+using ITHelpDesk.API.Models;
 namespace ITHelpDesk.API.Interfaces;
 
 public interface ITicketAssignmentService
@@ -40,4 +40,11 @@ public interface ITicketAssignmentService
 
     Task<List<AvailableTicketDto>>
         GetAgentHistoryAsync(int agentId);
+
+
+    Task<List<TicketSelectionDto>>
+        GetReassignableTicketsAsync();
+
+    Task<List<TicketSelectionDto>>
+        GetHistoryTicketsAsync();
 }

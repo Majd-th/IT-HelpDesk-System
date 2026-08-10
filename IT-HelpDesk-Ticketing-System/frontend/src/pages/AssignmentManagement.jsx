@@ -5,7 +5,6 @@ import {
 
 import Layout from
     "../components/Layout";
-
 import {
     getUnassignedTickets,
     getAgentWorkloads,
@@ -14,7 +13,9 @@ import {
     reassignTicket,
     reviewAssignmentRequest,
     getAssignmentHistory,
-    publishTicket
+    publishTicket,
+    getReassignableTickets,
+    getHistoryTickets
 } from "../services/assignmentService";
 
 import "../assets/assignment-management.css";
@@ -27,7 +28,15 @@ function AssignmentManagement() {
     const [workloads, setWorkloads] = useState([]);
     const [requests, setRequests] = useState([]);
     const [history, setHistory] = useState([]);
+const [
+    reassignableTickets,
+    setReassignableTickets
+] = useState([]);
 
+const [
+    historyTickets,
+    setHistoryTickets
+] = useState([]);
     const [selectedTicket, setSelectedTicket] =
         useState(null);
 
@@ -63,38 +72,52 @@ function AssignmentManagement() {
         loadAssignmentData();
     }, []);
 
-    async function loadAssignmentData() {
-        try {
-            setLoading(true);
-            setError("");
+   async function loadAssignmentData() {
+    try {
+        setLoading(true);
+        setError("");
 
-            const [
-                ticketData,
-                workloadData,
-                requestData
-            ] = await Promise.all([
-                getUnassignedTickets(),
-                getAgentWorkloads(),
-                getPendingRequests()
-            ]);
+        const [
+            ticketData,
+            workloadData,
+            requestData,
+            reassignableTicketData,
+            historyTicketData
+        ] = await Promise.all([
+            getUnassignedTickets(),
+            getAgentWorkloads(),
+            getPendingRequests(),
+            getReassignableTickets(),
+            getHistoryTickets()
+        ]);
 
-            setTickets(ticketData);
-            setWorkloads(workloadData);
-            setRequests(requestData);
-        } catch (requestError) {
-            console.error(
-                "Could not load assignment data:",
-                requestError
-            );
+        setTickets(ticketData);
 
-            setError(
-                requestError.response?.data?.message ||
-                "Could not load assignment information."
-            );
-        } finally {
-            setLoading(false);
-        }
+        setWorkloads(workloadData);
+
+        setRequests(requestData);
+
+        setReassignableTickets(
+            reassignableTicketData
+        );
+
+        setHistoryTickets(
+            historyTicketData
+        );
+    } catch (requestError) {
+        console.error(
+            "Could not load assignment data:",
+            requestError
+        );
+
+        setError(
+            requestError.response?.data?.message ||
+            "Could not load assignment information."
+        );
+    } finally {
+        setLoading(false);
     }
+}
     async function handlePublish(ticket) {
     const notes =
         window.prompt(
@@ -221,10 +244,10 @@ function AssignmentManagement() {
     async function handleReassign(event) {
         event.preventDefault();
 
-        if (!reassignTicketId.trim()) {
-            setError("Enter the ticket ID.");
-            return;
-        }
+       if (!reassignTicketId) {
+    setError("Select a ticket.");
+    return;
+}
 
         if (!reassignAgentId) {
             setError("Select the new agent.");
@@ -326,10 +349,10 @@ function AssignmentManagement() {
     async function handleLoadHistory(event) {
         event.preventDefault();
 
-        if (!historyTicketId.trim()) {
-            setError("Enter a ticket ID.");
-            return;
-        }
+       if (!historyTicketId) {
+    setError("Select a ticket.");
+    return;
+}
 
         try {
             setProcessing(true);
@@ -777,21 +800,45 @@ function AssignmentManagement() {
                             onSubmit={handleReassign}
                         >
                             <div className="assignment-form-group">
-                                <label htmlFor="reassignTicketId">
-                                    Ticket ID
-                                </label>
+                               
 
-                                <input
-                                    id="reassignTicketId"
-                                    type="number"
-                                    min="1"
-                                    value={reassignTicketId}
-                                    onChange={(event) =>
-                                        setReassignTicketId(
-                                            event.target.value
-                                        )
-                                    }
-                                />
+                               <div className="assignment-form-group">
+    <label htmlFor="reassignTicketId">
+        Ticket
+    </label>
+
+    <select
+        id="reassignTicketId"
+        value={reassignTicketId}
+        onChange={(event) =>
+            setReassignTicketId(
+                event.target.value
+            )
+        }
+    >
+        <option value="">
+            Select ticket
+        </option>
+
+        {reassignableTickets.map(
+            (ticket) => (
+                <option
+                    key={ticket.id}
+                    value={ticket.id}
+                >
+                    {ticket.referenceNumber}
+                    {" — "}
+                    {ticket.title}
+                    {" — "}
+                    {ticket.assignedTo ||
+                        "Not assigned"}
+                    {" — "}
+                    {ticket.status}
+                </option>
+            )
+        )}
+    </select>
+</div>
                             </div>
 
                             <div className="assignment-form-group">
@@ -880,17 +927,35 @@ function AssignmentManagement() {
                             className="assignment-history-search"
                             onSubmit={handleLoadHistory}
                         >
-                            <input
-                                type="number"
-                                min="1"
-                                placeholder="Enter ticket ID"
-                                value={historyTicketId}
-                                onChange={(event) =>
-                                    setHistoryTicketId(
-                                        event.target.value
-                                    )
-                                }
-                            />
+                        <select
+    value={historyTicketId}
+    onChange={(event) => {
+        setHistoryTicketId(
+            event.target.value
+        );
+
+        setHistory([]);
+    }}
+>
+    <option value="">
+        Select ticket
+    </option>
+
+    {historyTickets.map(
+        (ticket) => (
+            <option
+                key={ticket.id}
+                value={ticket.id}
+            >
+                {ticket.referenceNumber}
+                {" — "}
+                {ticket.title}
+                {" — "}
+                {ticket.status}
+            </option>
+        )
+    )}
+</select>
 
                             <button
                                 type="submit"

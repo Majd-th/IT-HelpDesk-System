@@ -1,10 +1,14 @@
 import Sidebar from "./Sidebar";
-
+import NotificationBell from
+    "./NotificationBell";
 import "../styles/Layout.css";
+import NotificationRealtimeListener
+    from "./NotificationRealtimeListener";
 
 function Layout({ children }) {
     return (
         <div className="layout">
+             <NotificationRealtimeListener/>
             <Sidebar />
 
             <div className="main">
@@ -14,15 +18,12 @@ function Layout({ children }) {
                             IT Ticketing System
                         </h3>
                     </div>
+                   
 
                     <div className="topbar-right">
-                        <button
-                            type="button"
-                            className="notification"
-                            aria-label="Notifications"
-                        >
-                            🔔
-                        </button>
+                    
+                              <NotificationBell />
+                    
                     </div>
                 </header>
 

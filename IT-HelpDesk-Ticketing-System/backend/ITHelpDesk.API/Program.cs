@@ -2,6 +2,7 @@ using System.Text;
 using ITHelpDesk.API.Configuration;
 using ITHelpDesk.API.Data;
 using ITHelpDesk.API.Helpers;
+using ITHelpDesk.API.Hubs;
 using ITHelpDesk.API.Interfaces;
 using ITHelpDesk.API.Repositories;
 using ITHelpDesk.API.Services;
@@ -10,7 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder =
+    WebApplication.CreateBuilder(args);
+
 
 // =====================================================
 // DATABASE
@@ -19,11 +22,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(
     options =>
         options.UseSqlServer(
-            builder.Configuration.GetConnectionString(
-                "DefaultConnection"
-            )
+            builder.Configuration
+                .GetConnectionString(
+                    "DefaultConnection"
+                )
         )
 );
+
 
 // =====================================================
 // CORS
@@ -36,18 +41,23 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5173")
+                .WithOrigins(
+                    "http://localhost:5173"
+                )
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .AllowCredentials();
         }
     );
 });
+
 
 // =====================================================
 // CONTROLLERS AND SWAGGER
 // =====================================================
 
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -56,12 +66,23 @@ builder.Services.AddSwaggerGen(options =>
         "Bearer",
         new OpenApiSecurityScheme
         {
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description = "Enter JWT Bearer token"
+            Name =
+                "Authorization",
+
+            Type =
+                SecuritySchemeType.Http,
+
+            Scheme =
+                "bearer",
+
+            BearerFormat =
+                "JWT",
+
+            In =
+                ParameterLocation.Header,
+
+            Description =
+                "Enter JWT Bearer token"
         }
     );
 
@@ -71,18 +92,24 @@ builder.Services.AddSwaggerGen(options =>
             {
                 new OpenApiSecurityScheme
                 {
-                    Reference = new OpenApiReference
-                    {
-                        Type =
-                            ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
+                    Reference =
+                        new OpenApiReference
+                        {
+                            Type =
+                                ReferenceType
+                                    .SecurityScheme,
+
+                            Id =
+                                "Bearer"
+                        }
                 },
+
                 Array.Empty<string>()
             }
         }
     );
 });
+
 
 // =====================================================
 // AUTHENTICATION AND AUTHORIZATION
@@ -90,17 +117,25 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services
     .AddAuthentication(
-        JwtBearerDefaults.AuthenticationScheme
+        JwtBearerDefaults
+            .AuthenticationScheme
     )
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters =
             new TokenValidationParameters
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
+                ValidateIssuer =
+                    true,
+
+                ValidateAudience =
+                    true,
+
+                ValidateLifetime =
+                    true,
+
+                ValidateIssuerSigningKey =
+                    true,
 
                 ValidIssuer =
                     builder.Configuration[
@@ -114,16 +149,63 @@ builder.Services
 
                 IssuerSigningKey =
                     new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            builder.Configuration[
-                                "Jwt:Key"
-                            ]!
-                        )
+                        Encoding.UTF8
+                            .GetBytes(
+                                builder.Configuration[
+                                    "Jwt:Key"
+                                ]!
+                            )
                     )
+            };
+
+
+        /*
+         * SignalR WebSocket / Server-Sent Events
+         * authentication.
+         *
+         * The JavaScript SignalR client can send the JWT
+         * through the access_token query parameter.
+         */
+        options.Events =
+            new JwtBearerEvents
+            {
+                OnMessageReceived =
+                    context =>
+                    {
+                        var accessToken =
+                            context.Request
+                                .Query[
+                                    "access_token"
+                                ];
+
+                        var path =
+                            context.HttpContext
+                                .Request.Path;
+
+                        if (
+                            !string.IsNullOrEmpty(
+                                accessToken
+                            )
+                            &&
+                            path.StartsWithSegments(
+                                "/hubs/notifications"
+                            )
+                        )
+                        {
+                            context.Token =
+                                accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
             };
     });
 
+
 builder.Services.AddAuthorization();
+
+builder.Services.AddSignalR();
+
 
 // =====================================================
 // AUTHENTICATION SERVICES
@@ -131,23 +213,32 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<
     IUserRepository,
-    UserRepository>();
+    UserRepository
+>();
 
 builder.Services.AddScoped<
     IAuthService,
-    AuthService>();
+    AuthService
+>();
 
-builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<
+    JwtHelper
+>();
 
 builder.Services.AddScoped<
     IEmailService,
-    EmailService>();
+    EmailService
+>();
 
-builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection(
-        "EmailSettings"
-    )
+builder.Services.Configure<
+    EmailSettings
+>(
+    builder.Configuration
+        .GetSection(
+            "EmailSettings"
+        )
 );
+
 
 // =====================================================
 // TICKET SERVICES
@@ -155,19 +246,24 @@ builder.Services.Configure<EmailSettings>(
 
 builder.Services.AddScoped<
     ITicketRepository,
-    TicketRepository>();
+    TicketRepository
+>();
 
 builder.Services.AddScoped<
     ITicketService,
-    TicketService>();
+    TicketService
+>();
 
 builder.Services.AddScoped<
     IActivityLogRepository,
-    ActivityLogRepository>();
+    ActivityLogRepository
+>();
 
 builder.Services.AddScoped<
     ITicketWorkLogRepository,
-    TicketWorkLogRepository>();
+    TicketWorkLogRepository
+>();
+
 
 // =====================================================
 // ATTACHMENT SERVICES
@@ -175,11 +271,14 @@ builder.Services.AddScoped<
 
 builder.Services.AddScoped<
     ITicketAttachmentRepository,
-    TicketAttachmentRepository>();
+    TicketAttachmentRepository
+>();
 
 builder.Services.AddScoped<
     ITicketAttachmentService,
-    TicketAttachmentService>();
+    TicketAttachmentService
+>();
+
 
 // =====================================================
 // ASSIGNMENT SERVICES
@@ -187,11 +286,14 @@ builder.Services.AddScoped<
 
 builder.Services.AddScoped<
     ITicketAssignmentRepository,
-    TicketAssignmentRepository>();
+    TicketAssignmentRepository
+>();
 
 builder.Services.AddScoped<
     ITicketAssignmentService,
-    TicketAssignmentService>();
+    TicketAssignmentService
+>();
+
 
 // =====================================================
 // LOOKUP SERVICES
@@ -199,35 +301,53 @@ builder.Services.AddScoped<
 
 builder.Services.AddScoped<
     ICategoryRepository,
-    CategoryRepository>();
+    CategoryRepository
+>();
 
 builder.Services.AddScoped<
     ICategoryService,
-    CategoryService>();
+    CategoryService
+>();
 
 builder.Services.AddScoped<
     IPriorityRepository,
-    PriorityRepository>();
+    PriorityRepository
+>();
 
 builder.Services.AddScoped<
     IPriorityService,
-    PriorityService>();
+    PriorityService
+>();
 
 builder.Services.AddScoped<
     IStatusRepository,
-    StatusRepository>();
+    StatusRepository
+>();
 
 builder.Services.AddScoped<
     IStatusService,
-    StatusService>();
+    StatusService
+>();
 
 
+// =====================================================
+// NOTIFICATION SERVICES
+// =====================================================
+
+builder.Services.AddScoped<
+    INotificationRepository,
+    NotificationRepository
+>();
+
+builder.Services.AddScoped<
+    INotificationService,
+    NotificationService
+>();
 
 
-
-
-
-
+// =====================================================
+// DASHBOARD SERVICES
+// =====================================================
 
 builder.Services.AddScoped<
     IDashboardRepository,
@@ -238,25 +358,60 @@ builder.Services.AddScoped<
     IDashboardService,
     DashboardService
 >();
-var app = builder.Build();
+
+
+// =====================================================
+// BUILD APP
+// =====================================================
+
+var app =
+    builder.Build();
+
 
 // =====================================================
 // HTTP PIPELINE
 // =====================================================
 
-if (app.Environment.IsDevelopment())
+if (
+    app.Environment
+        .IsDevelopment()
+)
 {
     app.UseSwagger();
+
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 
-app.UseCors("AllowReact");
+
+/*
+ * CORS must run before authentication /
+ * authorization for these requests.
+ */
+app.UseCors(
+    "AllowReact"
+);
+
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
+
 app.MapControllers();
+
+
+/*
+ * SignalR notification endpoint.
+ */
+app.MapHub<NotificationHub>(
+    "/hubs/notifications"
+)
+.RequireCors(
+    "AllowReact"
+);
+
 
 app.Run();

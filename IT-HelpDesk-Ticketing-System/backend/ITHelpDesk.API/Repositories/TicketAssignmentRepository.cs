@@ -53,19 +53,29 @@ public class TicketAssignmentRepository
             .ThenBy(u => u.LastName)
             .ToListAsync();
     }
-
     public async Task<int>
         GetAgentActiveTicketCountAsync(
             int agentId)
     {
         return await _context.Tickets
-            .CountAsync(t =>
-                t.AssignedToUserId == agentId &&
+            .AsNoTracking()
+            .CountAsync(ticket =>
+                ticket.AssignedToUserId == agentId
+                &&
                 (
-                    t.Status.Name == "Open" ||
-                    t.Status.Name == "In Progress" ||
-                    t.Status.Name == "Pending"
-                ));
+                    ticket.StatusId ==
+                        TicketStatusIds.Assigned
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.InProgress
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.Reopened
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.Escalated
+                )
+            );
     }
 
     public async Task<TicketAssignment?>
@@ -244,22 +254,87 @@ public class TicketAssignmentRepository
         await _context.SaveChangesAsync();
     }
     public async Task<List<Ticket>>
-    GetAgentTicketsAsync(int agentId)
+    GetAgentTicketsAsync(
+        int agentId)
     {
         return await _context.Tickets
-            .Include(ticket => ticket.Category)
-            .Include(ticket => ticket.Priority)
-            .Include(ticket => ticket.Status)
-            .Include(ticket => ticket.CreatedByUser)
-            .Include(ticket => ticket.AssignedToUser)
+            .AsNoTracking()
+            .Include(ticket =>
+                ticket.Category)
+            .Include(ticket =>
+                ticket.Priority)
+            .Include(ticket =>
+                ticket.Status)
+            .Include(ticket =>
+                ticket.CreatedByUser)
+            .Include(ticket =>
+                ticket.AssignedToUser)
             .Where(ticket =>
-                ticket.AssignedToUserId == agentId
+                ticket.AssignedToUserId ==
+                    agentId
                 &&
-                ticket.StatusId != TicketStatusIds.Resolved
+                (
+                    ticket.StatusId ==
+                        TicketStatusIds.Assigned
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.InProgress
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.Reopened
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.Escalated
+                )
+            )
+            .OrderByDescending(ticket =>
+                ticket.CreatedDate)
+            .ToListAsync();
+    }
+    public async Task<List<Ticket>>
+    GetReassignableTicketsAsync()
+    {
+        return await _context.Tickets
+            .AsNoTracking()
+            .Include(ticket =>
+                ticket.Status)
+            .Include(ticket =>
+                ticket.AssignedToUser)
+            .Where(ticket =>
+                ticket.AssignedToUserId != null
                 &&
-                ticket.StatusId != TicketStatusIds.Closed
-                &&
-                ticket.StatusId != TicketStatusIds.Canceled
+                (
+                    ticket.StatusId ==
+                        TicketStatusIds.Assigned
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.InProgress
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.Reopened
+                    ||
+                    ticket.StatusId ==
+                        TicketStatusIds.Escalated
+                )
+            )
+            .OrderByDescending(ticket =>
+                ticket.CreatedDate)
+            .ToListAsync();
+    }
+    public async Task<List<Ticket>>
+    GetHistoryTicketsAsync()
+    {
+        return await _context.Tickets
+            .AsNoTracking()
+            .Include(ticket =>
+                ticket.Status)
+            .Include(ticket =>
+                ticket.AssignedToUser)
+            .Where(ticket =>
+                _context.TicketAssignments
+                    .Any(assignment =>
+                        assignment.TicketId ==
+                            ticket.Id)
             )
             .OrderByDescending(ticket =>
                 ticket.CreatedDate)

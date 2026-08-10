@@ -220,6 +220,27 @@ new Role
             .WithMany(user => user.ActivityLogs)
             .HasForeignKey(log => log.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Notification -> User
+        modelBuilder
+            .Entity<Notification>()
+            .HasOne(notification =>
+                notification.User)
+            .WithMany(user =>
+                user.Notifications)
+            .HasForeignKey(notification =>
+                notification.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Notification -> Ticket
+        modelBuilder
+            .Entity<Notification>()
+            .HasOne(notification =>
+                notification.Ticket)
+            .WithMany()
+            .HasForeignKey(notification =>
+                notification.TicketId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
 }
